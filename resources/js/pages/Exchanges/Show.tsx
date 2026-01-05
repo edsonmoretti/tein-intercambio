@@ -6,17 +6,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
-// Note: Checkbox component is not created yet, I will simulate it standard input or create it next.
-// Simulating with standard input type='checkbox' for now to be safe or cleaner code.
+
 import { Plus, Trash2, CheckCircle, Circle, MapPin, Calendar, CreditCard, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const CATEGORIES = [
+    { id: 'before_go', label: 'Antes de ir' },
+    { id: 'arrival', label: 'Chegada' },
+    { id: 'during', label: 'Durante' }
+];
 
 export default function Show({ exchange }: { exchange: any }) {
     const [activeTab, setActiveTab] = useState("details");
     // Checklist Filtering
     const [checklistFilter, setChecklistFilter] = useState<string>('all');
+
 
     // Task Form
     const { data: taskData, setData: setTaskData, post: postTask, reset: resetTask, processing: taskProcessing } = useForm({
@@ -171,9 +176,9 @@ export default function Show({ exchange }: { exchange: any }) {
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="before_go">Antes de ir</SelectItem>
-                                            <SelectItem value="arrival">Chegada</SelectItem>
-                                            <SelectItem value="during">Durante</SelectItem>
+                                            {CATEGORIES.map(cat => (
+                                                <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -195,12 +200,18 @@ export default function Show({ exchange }: { exchange: any }) {
                     <div className="flex items-center space-x-2 pb-2">
                         <span className="text-sm font-medium text-slate-500">Filtrar por:</span>
                         <div className="flex gap-2">
-                            {[
-                                { id: 'all', label: 'Todas' },
-                                { id: 'before_go', label: 'Antes de ir' },
-                                { id: 'arrival', label: 'Chegada' },
-                                { id: 'during', label: 'Durante' }
-                            ].map((cat) => (
+                            <button
+                                onClick={() => setChecklistFilter('all')}
+                                className={cn(
+                                    "px-3 py-1 text-xs rounded-full border transition-colors",
+                                    checklistFilter === 'all'
+                                        ? "bg-slate-900 text-white border-slate-900 dark:bg-slate-100 dark:text-slate-900"
+                                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-slate-950 dark:border-slate-800 dark:text-slate-400"
+                                )}
+                            >
+                                Todas
+                            </button>
+                            {CATEGORIES.map((cat) => (
                                 <button
                                     key={cat.id}
                                     onClick={() => setChecklistFilter(cat.id)}
@@ -258,7 +269,7 @@ export default function Show({ exchange }: { exchange: any }) {
                                         </p>
                                         <div className="flex gap-2">
                                             <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded dark:bg-slate-800">
-                                                {task.category.replace('_', ' ')}
+                                                {CATEGORIES.find(c => c.id === task.category)?.label || task.category}
                                             </span>
                                             {task.due_date && (
                                                 <span className="text-[10px] text-slate-400 flex items-center gap-1">
