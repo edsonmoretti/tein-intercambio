@@ -1,13 +1,7 @@
 import { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import {
-    LayoutDashboard,
     Plane,
-    FileText,
-    CheckSquare,
-    ShoppingBag,
-    PiggyBank,
-    Home,
     Menu,
     X,
     LogOut,
@@ -21,13 +15,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const navItems = [
-        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-        { name: 'Intercâmbios', href: '/exchanges', icon: Plane },
-        { name: 'Documentos', href: '/documents', icon: FileText },
-        { name: 'Checklist', href: '/tasks', icon: CheckSquare },
-        { name: 'Compras', href: '/purchases', icon: ShoppingBag },
-        { name: 'Financeiro', href: '/budgets', icon: PiggyBank },
-        { name: 'Moradia', href: '/housings', icon: Home },
+        { name: 'Meus Intercâmbios', href: '/exchanges', icon: Plane },
     ];
 
     return (
@@ -46,7 +34,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
                 sidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}>
                 <div className="flex h-16 items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800">
-                    <Link href="/dashboard" className="flex items-center gap-2">
+                    <Link href="/exchanges" className="flex items-center gap-2">
                         <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
                             Inter<span className="text-blue-600">Cambio</span>
                         </span>

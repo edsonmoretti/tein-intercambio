@@ -48,9 +48,10 @@ export default function Show({ exchange }: { exchange: any }) {
     };
 
     // Purchase Form
-    const { data: purchaseData, setData: setPurchaseData, post: postPurchase, reset: resetPurchase, processing: purchaseProcessing } = useForm({
+    // Purchase Form
+    const { data: purchaseData, setData: setPurchaseData, post: postPurchase, reset: resetPurchase, processing: purchaseProcessing, errors: purchaseErrors } = useForm({
         item: '',
-        estimated_cost: '', // Changed to string to match input type
+        estimated_cost: '',
         display_cost: '',
         category: 'clothing',
         type: 'before'
@@ -58,20 +59,21 @@ export default function Show({ exchange }: { exchange: any }) {
 
     const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
+        // Allow only digits and one dot
+        if (value && !/^\d*\.?\d*$/.test(value)) return;
+
         setPurchaseData((prev: any) => ({
             ...prev,
             display_cost: value,
-            estimated_cost: value.replace(/[^0-9.]/g, '')
+            estimated_cost: value
         }));
     };
-
-    // ...
 
     const submitPurchase = (e: React.FormEvent) => {
         e.preventDefault();
         postPurchase(`/exchanges/${exchange.id}/purchases`, {
             onSuccess: () => {
-                resetPurchase('item', 'estimated_cost', 'display_cost'); // Reset specific fields
+                resetPurchase();
                 setPurchaseData(prev => ({ ...prev, item: '', estimated_cost: '', display_cost: '' }));
             },
             preserveScroll: true
@@ -112,7 +114,7 @@ export default function Show({ exchange }: { exchange: any }) {
                     </div>
                     <div className="flex gap-2">
                         <Link href={`/exchanges/${exchange.id}/edit`}>
-                            <Button variant="outline">Editar</Button>
+                            <Button variant="outline" className='dark:text-white'>Editar</Button>
                         </Link>
                     </div>
                 </div>
@@ -298,7 +300,7 @@ export default function Show({ exchange }: { exchange: any }) {
                             <CardTitle>Planejar Compra</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <form onSubmit={submitPurchase} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                            <form onSubmit={submitPurchase} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
                                 <div className="space-y-2 md:col-span-1">
                                     <Label>Item</Label>
                                     <Input
@@ -307,17 +309,19 @@ export default function Show({ exchange }: { exchange: any }) {
                                         placeholder="Ex: Mala grande"
                                         required
                                     />
+                                    {purchaseErrors.item && <span className="text-xs text-red-500">{purchaseErrors.item}</span>}
                                 </div>
                                 <div className="space-y-2 md:col-span-1">
                                     <Label>Custo Estimado ($)</Label>
                                     <Input
-                                        type="number"
-                                        step="0.01"
+                                        type="text"
+                                        inputMode="decimal"
                                         value={purchaseData.display_cost}
                                         onChange={handleCostChange}
                                         placeholder="0.00"
                                         required
                                     />
+                                    {purchaseErrors.estimated_cost && <span className="text-xs text-red-500">{purchaseErrors.estimated_cost}</span>}
                                 </div>
                                 <div className="space-y-2 md:col-span-1">
                                     <Label>Categoria</Label>
@@ -331,10 +335,13 @@ export default function Show({ exchange }: { exchange: any }) {
                                             <SelectItem value="other">Outros</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                    {purchaseErrors.category && <span className="text-xs text-red-500">{purchaseErrors.category}</span>}
                                 </div>
-                                <Button type="submit" disabled={purchaseProcessing} className="md:col-span-1">
-                                    Adicionar
-                                </Button>
+                                <div className="md:col-span-1 pt-8">
+                                    <Button type="submit" disabled={purchaseProcessing} className="w-full">
+                                        Adicionar
+                                    </Button>
+                                </div>
                             </form>
                         </CardContent>
                     </Card>

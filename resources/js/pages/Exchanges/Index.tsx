@@ -38,8 +38,8 @@ export default function Index({ exchanges }: { exchanges: Exchange[] }) {
 
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Meus Intercâmbios</h1>
-                    <p className="text-muted-foreground">Gerencie seus planos de viagem de estudos.</p>
+                    <h1 className="text-2xl font-bold tracking-tight dark:text-white">Meus Intercâmbios</h1>
+                    <p className="text-muted-foreground dark:text-white">Gerencie seus planos de viagem de estudos.</p>
                 </div>
                 <Link href="/exchanges/create">
                     <Button>

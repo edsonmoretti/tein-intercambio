@@ -16,14 +16,14 @@ class PurchaseController extends Controller
             abort(403);
         }
 
-        $request->validate([
+        $data = $request->validate([
             'item' => 'required|string',
             'category' => 'required|string',
             'estimated_cost' => 'required|numeric',
             'type' => 'required|in:before,after',
         ]);
 
-        $exchange->purchases()->create($request->all());
+        $exchange->purchases()->create($data);
 
         return back()->with('success', 'Compra planejada!');
     }
