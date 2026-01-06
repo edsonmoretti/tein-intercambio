@@ -86,10 +86,9 @@ class TripController extends Controller
             'status' => 'nullable|string'
         ]);
 
-        // Basic update - more complex business rules can be added here similar to API
         $trip->update($request->all());
 
-        return redirect()->route('trips.index')->with('success', 'Viagem atualizada!');
+        return response()->json(['trip_id' => $trip->id]);
     }
 
     public function destroy(Trip $trip)

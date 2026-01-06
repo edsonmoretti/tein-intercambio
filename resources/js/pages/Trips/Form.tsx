@@ -24,7 +24,10 @@ export default function Form({ trip }: { trip?: any }) {
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         if (isEditing) {
-            put(`/trips/${trip.id}`);
+            axios.put(`/trips/${trip.id}`, data).then(response => {
+                const tripId = response.data.trip_id;
+                router.visit(`/trips/${tripId}`);
+            });
         } else {
             axios.post('/trips', data).then(response => {
                 const tripId = response.data.trip_id;
@@ -98,6 +101,7 @@ export default function Form({ trip }: { trip?: any }) {
                                         type="date"
                                         value={data.start_date}
                                         onChange={(e) => setData('start_date', e.target.value)}
+                                        className="dark:[color-scheme:dark]"
                                     />
                                     {errors.start_date && <p className="text-sm text-red-500">{errors.start_date}</p>}
                                 </div>
@@ -108,6 +112,7 @@ export default function Form({ trip }: { trip?: any }) {
                                         type="date"
                                         value={data.end_date}
                                         onChange={(e) => setData('end_date', e.target.value)}
+                                        className="dark:[color-scheme:dark]"
                                     />
                                     {errors.end_date && <p className="text-sm text-red-500">{errors.end_date}</p>}
                                 </div>
