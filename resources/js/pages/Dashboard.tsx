@@ -19,32 +19,32 @@ const StatCard = ({ title, value, description, icon: Icon }: any) => (
 export default function Dashboard({ auth }: { auth: any }) {
     return (
         <AuthenticatedLayout>
-            <Head title="Dashboard" />
+            <Head title="Painel de Controle" />
 
             <div className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <StatCard
-                        title="Total Active Exchanges"
+                        title="Total de Intercâmbios Ativos"
                         value="2"
-                        description="+1 from last month"
+                        description="+1 do mês passado"
                         icon={Activity}
                     />
                     <StatCard
-                        title="Pending Documents"
+                        title="Documentos Pendentes"
                         value="3"
-                        description="2 mandatory"
+                        description="2 obrigatórios"
                         icon={Users}
                     />
                     <StatCard
-                        title="Budget Spent"
+                        title="Orçamento Gasto"
                         value="$3,240"
-                        description="45% of total budget"
+                        description="45% do orçamento total"
                         icon={DollarSign}
                     />
                     <StatCard
-                        title="Upcoming Events"
+                        title="Próximos Eventos"
                         value="5"
-                        description="In the next 7 days"
+                        description="Nos próximos 7 dias"
                         icon={Calendar}
                     />
                 </div>
@@ -52,18 +52,18 @@ export default function Dashboard({ auth }: { auth: any }) {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                     <Card className="col-span-4 rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-50 h-[400px]">
                         <CardHeader>
-                            <CardTitle>Overview</CardTitle>
-                            <CardDescription>Activity graph placeholder</CardDescription>
+                            <CardTitle>Visão Geral</CardTitle>
+                            <CardDescription>Espaço reservado para gráfico de atividade</CardDescription>
                         </CardHeader>
                         <CardContent>
                         </CardContent>
                     </Card>
                     <Card className="col-span-3 rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-50 h-[400px]">
                         <CardHeader>
-                            <CardTitle>Recent Activity</CardTitle>
+                            <CardTitle>Atividade Recente</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-sm text-slate-500">List of recent actions</p>
+                            <p className="text-sm text-slate-500">Lista de ações recentes</p>
                         </CardContent>
                     </Card>
                 </div>

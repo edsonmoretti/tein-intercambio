@@ -21,7 +21,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const navItems = [
-        { name: 'Meus Intercâmbios', href: '/exchanges', icon: Plane },
+        { name: 'Intercâmbios', href: '/exchanges', icon: Plane },
         { name: 'Meu Perfil', href: '/profile', icon: User },
     ];
 

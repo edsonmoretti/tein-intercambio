@@ -1,5 +1,5 @@
 import { useEffect, FormEventHandler } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import GuestLayout from '@/layouts/GuestLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,17 +25,13 @@ export default function Login({ status, canResetPassword }: { status?: string, c
 
     return (
         <GuestLayout>
-            <Head title="Log in" />
+            <Head title="Entrar" />
 
-            {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
+            {status && <div className="mb-4 text-sm font-medium text-green-600">{status}</div>}
 
             <form onSubmit={submit} className="space-y-6">
                 <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">E-mail</Label>
                     <Input
                         id="email"
                         type="email"
@@ -46,15 +42,11 @@ export default function Login({ status, canResetPassword }: { status?: string, c
                         onChange={(e) => setData('email', e.target.value)}
                         required
                     />
-                    {errors.email && (
-                        <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                            {errors.email}
-                        </p>
-                    )}
+                    {errors.email && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.email}</p>}
                 </div>
 
                 <div>
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">Senha</Label>
                     <Input
                         id="password"
                         type="password"
@@ -65,11 +57,7 @@ export default function Login({ status, canResetPassword }: { status?: string, c
                         onChange={(e) => setData('password', e.target.value)}
                         required
                     />
-                    {errors.password && (
-                        <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                            {errors.password}
-                        </p>
-                    )}
+                    {errors.password && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.password}</p>}
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -80,24 +68,21 @@ export default function Login({ status, canResetPassword }: { status?: string, c
                             onChange={(e) => setData('remember', e.target.checked)}
                             className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
-                        <span className="ml-2 text-sm text-slate-600 dark:text-slate-400">
-                            Remember me
-                        </span>
+                        <span className="ml-2 text-sm text-slate-600 dark:text-slate-400">Lembrar-me</span>
                     </label>
 
-                    <span className="text-sm text-gray-400 cursor-not-allowed">Forgot password?</span>
-
+                    <span className="cursor-not-allowed text-sm text-gray-400">Esqueceu a senha?</span>
                 </div>
 
                 <Button className="w-full" disabled={processing}>
-                    Log in
+                    Entrar
                 </Button>
 
                 <div className="mt-4 text-center text-sm text-slate-600 dark:text-slate-400">
-                    Don't have an account?{' '}
-                    <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
-                        Sign up
-                    </Link>
+                    Não tem uma conta?{' '}
+                    <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                        Cadastre-se (envie e-mail para edsonmoretti@gmail.com)
+                    </span>
                 </div>
             </form>
         </GuestLayout>
