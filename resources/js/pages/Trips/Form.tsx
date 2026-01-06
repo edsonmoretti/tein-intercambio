@@ -1,4 +1,4 @@
-import { Head, useForm, Link } from '@inertiajs/react';
+import { Head, useForm, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FormEventHandler } from 'react';
+import axios from 'axios';
 
 export default function Form({ trip }: { trip?: any }) {
     const isEditing = !!trip;
@@ -25,7 +26,10 @@ export default function Form({ trip }: { trip?: any }) {
         if (isEditing) {
             put(`/trips/${trip.id}`);
         } else {
-            post('/trips');
+            axios.post('/trips', data).then(response => {
+                const tripId = response.data.trip_id;
+                router.visit(`/trips/${tripId}`);
+            });
         }
     };
 

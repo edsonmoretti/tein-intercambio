@@ -43,7 +43,7 @@ class TripController extends Controller
             ['user_id' => Auth::id(), 'status' => 'planning']
         ));
 
-        return redirect()->route('trips.show', $trip)->with('success', 'Viagem criada com sucesso!');
+        return response()->json(['trip_id' => $trip->id]);
     }
 
     public function show(Trip $trip)
