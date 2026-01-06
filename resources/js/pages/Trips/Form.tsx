@@ -128,8 +128,8 @@ export default function Form({ trip }: { trip?: any }) {
                                         <SelectContent>
                                             <SelectItem value="study">Estudo</SelectItem>
                                             <SelectItem value="language">Idioma</SelectItem>
-                                            <SelectItem value="high_school">High School</SelectItem>
-                                            <SelectItem value="work_study">Work & Study</SelectItem>
+                                            {/*<SelectItem value="high_school">High School</SelectItem>*/}
+                                            {/*<SelectItem value="work_study">Work & Study</SelectItem>*/}
                                         </SelectContent>
                                     </Select>
                                     {errors.type && <p className="text-sm text-red-500">{errors.type}</p>}

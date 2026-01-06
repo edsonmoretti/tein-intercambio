@@ -588,7 +588,12 @@ export default function Show({ trip }: { trip: any }) {
                                 </div>
                                 <div className="w-full space-y-2 md:w-[150px]">
                                     <Label>Prazo (Opcional)</Label>
-                                    <Input type="date" value={taskData.due_date} onChange={(e) => setTaskData('due_date', e.target.value)} />
+                                    <Input
+                                        type="date"
+                                        className="dark:[color-scheme:dark]"
+                                        value={taskData.due_date}
+                                        onChange={(e) => setTaskData('due_date', e.target.value)}
+                                    />
                                 </div>
                                 <Button type="submit" disabled={taskProcessing}>
                                     <Plus className="h-4 w-4" />
@@ -744,10 +749,7 @@ export default function Show({ trip }: { trip: any }) {
                                 </div>
                                 <div className="space-y-2 md:col-span-1">
                                     <Label>Atribuir a (Opcional)</Label>
-                                    <Select
-                                        value={purchaseData.trip_member_id}
-                                        onValueChange={(val) => setPurchaseData('trip_member_id', val)}
-                                    >
+                                    <Select value={purchaseData.trip_member_id} onValueChange={(val) => setPurchaseData('trip_member_id', val)}>
                                         <SelectTrigger>
                                             {' '}
                                             <SelectValue placeholder="Todos" />{' '}
@@ -873,6 +875,7 @@ export default function Show({ trip }: { trip: any }) {
                                 <div className="w-full space-y-2 md:w-[200px]">
                                     <Label>Validade (Opcional)</Label>
                                     <Input
+                                        className="dark:[color-scheme:dark]"
                                         type="date"
                                         value={documentData.expiration_date}
                                         onChange={(e) => setDocumentData('expiration_date', e.target.value)}
@@ -880,10 +883,7 @@ export default function Show({ trip }: { trip: any }) {
                                 </div>
                                 <div className="w-full space-y-2 md:w-[200px]">
                                     <Label>Atribuir a</Label>
-                                    <Select
-                                        value={documentData.trip_member_id}
-                                        onValueChange={(val) => setDocumentData('trip_member_id', val)}
-                                    >
+                                    <Select value={documentData.trip_member_id} onValueChange={(val) => setDocumentData('trip_member_id', val)}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Todos" />
                                         </SelectTrigger>
@@ -1092,6 +1092,7 @@ export default function Show({ trip }: { trip: any }) {
                                 <div className="space-y-2">
                                     <Label>Check-in</Label>
                                     <Input
+                                        className="dark:[color-scheme:dark]"
                                         type="date"
                                         value={housingData.start_date}
                                         onChange={(e) => setHousingData('start_date', e.target.value)}
@@ -1101,6 +1102,7 @@ export default function Show({ trip }: { trip: any }) {
                                 <div className="space-y-2">
                                     <Label>Check-out</Label>
                                     <Input
+                                        className="dark:[color-scheme:dark]"
                                         type="date"
                                         value={housingData.end_date}
                                         onChange={(e) => setHousingData('end_date', e.target.value)}
