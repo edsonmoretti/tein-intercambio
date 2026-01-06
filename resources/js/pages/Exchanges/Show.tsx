@@ -561,6 +561,16 @@ export default function Show({ exchange }: { exchange: any }) {
                                             <strong>Contato:</strong> {housing.contact_info}
                                         </div>
                                     )}
+                                    <div className="pt-2">
+                                        <a
+                                            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(housing.address)}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                                        >
+                                            <MapPin className="h-3 w-3" /> Ver rotas
+                                        </a>
+                                    </div>
                                 </CardContent>
                             </Card>
                         ))}
