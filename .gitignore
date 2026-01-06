@@ -28,3 +28,4 @@ yarn-error.log
 .ai
 .junie
 boost.json
+composer.lock
