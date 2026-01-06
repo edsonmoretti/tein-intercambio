@@ -10,7 +10,7 @@ class Housing extends Model
     use HasFactory;
 
     protected $fillable = [
-        'exchange_id',
+        'trip_id',
         'type',
         'address',
         'contact_info',
@@ -25,8 +25,8 @@ class Housing extends Model
         'cost' => 'decimal:2',
     ];
 
-    public function exchange()
+    public function trip()
     {
-        return $this->belongsTo(Exchange::class);
+        return $this->belongsTo(Trip::class);
     }
 }

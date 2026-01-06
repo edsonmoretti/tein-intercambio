@@ -4,15 +4,15 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Budget;
-use App\Models\Exchange;
+use App\Models\Trip;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class BudgetController extends Controller
 {
-    public function store(Request $request, Exchange $exchange)
+    public function store(Request $request, Trip $trip)
     {
-        if (Auth::user()->type !== 'admin' && $exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $trip->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -25,14 +25,14 @@ class BudgetController extends Controller
 
         $data['spent_amount'] = $data['spent_amount'] ?? 0;
 
-        $exchange->budgets()->create($data);
+        $trip->budgets()->create($data);
 
         return back()->with('success', 'Orçamento adicionado!');
     }
 
     public function update(Request $request, Budget $budget)
     {
-        if (Auth::user()->type !== 'admin' && $budget->exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $budget->trip->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -50,7 +50,7 @@ class BudgetController extends Controller
 
     public function destroy(Budget $budget)
     {
-        if (Auth::user()->type !== 'admin' && $budget->exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $budget->trip->user_id !== Auth::id()) {
             abort(403);
         }
 

@@ -10,7 +10,7 @@ class Event extends Model
     use HasFactory;
 
     protected $fillable = [
-        'exchange_id',
+        'trip_id',
         'title',
         'date',
         'type',
@@ -21,8 +21,8 @@ class Event extends Model
         'date' => 'datetime',
     ];
 
-    public function exchange()
+    public function trip()
     {
-        return $this->belongsTo(Exchange::class);
+        return $this->belongsTo(Trip::class);
     }
 }

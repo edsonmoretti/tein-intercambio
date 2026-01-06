@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('purchases', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('exchange_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('trip_id')->constrained()->cascadeOnDelete();
             $table->string('type'); // before, after
             $table->string('item');
             $table->string('category'); // clothing, document, tech, home

@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Web\AuthController;
-use App\Http\Controllers\Web\ExchangeController;
+use App\Http\Controllers\Web\TripController;
 use App\Http\Controllers\Web\TaskController;
 use App\Http\Controllers\Web\PurchaseController;
 use App\Http\Controllers\Web\DocumentController;
@@ -24,35 +24,35 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
 
-    Route::resource('exchanges', ExchangeController::class);
+    Route::resource('trips', TripController::class);
 
-    // Sub-resources for Exchanges
-    Route::post('/exchanges/{exchange}/tasks', [TaskController::class, 'store'])->name('tasks.store');
+    // Sub-resources for Trips
+    Route::post('/trips/{trip}/tasks', [TaskController::class, 'store'])->name('tasks.store');
     Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
 
-    Route::post('/exchanges/{exchange}/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
+    Route::post('/trips/{trip}/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
     Route::put('/purchases/{purchase}', [PurchaseController::class, 'update'])->name('purchases.update');
     Route::delete('/purchases/{purchase}', [PurchaseController::class, 'destroy'])->name('purchases.destroy');
 
-    Route::post('/exchanges/{exchange}/documents', [DocumentController::class, 'store'])->name('documents.store');
+    Route::post('/trips/{trip}/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
 
-    Route::post('/exchanges/{exchange}/budgets', [\App\Http\Controllers\Web\BudgetController::class, 'store'])->name('budgets.store');
+    Route::post('/trips/{trip}/budgets', [\App\Http\Controllers\Web\BudgetController::class, 'store'])->name('budgets.store');
     Route::put('/budgets/{budget}', [\App\Http\Controllers\Web\BudgetController::class, 'update'])->name('budgets.update');
     Route::delete('/budgets/{budget}', [\App\Http\Controllers\Web\BudgetController::class, 'destroy'])->name('budgets.destroy');
 
-    Route::post('/exchanges/{exchange}/housings', [\App\Http\Controllers\Web\HousingController::class, 'store'])->name('housings.store');
+    Route::post('/trips/{trip}/housings', [\App\Http\Controllers\Web\HousingController::class, 'store'])->name('housings.store');
     Route::put('/housings/{housing}', [\App\Http\Controllers\Web\HousingController::class, 'update'])->name('housings.update');
     Route::delete('/housings/{housing}', [\App\Http\Controllers\Web\HousingController::class, 'destroy'])->name('housings.destroy');
 
-    Route::post('/exchanges/{exchange}/events', [\App\Http\Controllers\Web\EventController::class, 'store'])->name('events.store');
+    Route::post('/trips/{trip}/events', [\App\Http\Controllers\Web\EventController::class, 'store'])->name('events.store');
     Route::put('/events/{event}', [\App\Http\Controllers\Web\EventController::class, 'update'])->name('events.update');
     Route::delete('/events/{event}', [\App\Http\Controllers\Web\EventController::class, 'destroy'])->name('events.destroy');
 
-    Route::post('/exchanges/{exchange}/members', [\App\Http\Controllers\Web\ExchangeMemberController::class, 'store'])->name('exchange-members.store');
-    Route::delete('/exchange-members/{member}', [\App\Http\Controllers\Web\ExchangeMemberController::class, 'destroy'])->name('exchange-members.destroy');
+    Route::post('/trips/{trip}/members', [\App\Http\Controllers\Web\TripMemberController::class, 'store'])->name('trip-members.store');
+    Route::delete('/trip-members/{member}', [\App\Http\Controllers\Web\TripMemberController::class, 'destroy'])->name('trip-members.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -7,44 +7,44 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FormEventHandler } from 'react';
 
-export default function Form({ exchange }: { exchange?: any }) {
-    const isEditing = !!exchange;
+export default function Form({ trip }: { trip?: any }) {
+    const isEditing = !!trip;
 
     const { data, setData, post, put, processing, errors } = useForm({
-        country: exchange?.country || '',
-        city: exchange?.city || '',
-        institution: exchange?.institution || '',
-        start_date: exchange?.start_date || '',
-        end_date: exchange?.end_date || '',
-        type: exchange?.type || 'study',
-        status: exchange?.status || 'planning',
+        country: trip?.country || '',
+        city: trip?.city || '',
+        place: trip?.place || '',
+        start_date: trip?.start_date || '',
+        end_date: trip?.end_date || '',
+        type: trip?.type || 'study',
+        status: trip?.status || 'planning',
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         if (isEditing) {
-            put(`/exchanges/${exchange.id}`);
+            put(`/trips/${trip.id}`);
         } else {
-            post('/exchanges');
+            post('/trips');
         }
     };
 
     return (
         <AuthenticatedLayout>
-            <Head title={isEditing ? 'Editar Intercâmbio' : 'Novo Intercâmbio'} />
+            <Head title={isEditing ? 'Editar Viagem' : 'Nova Viagem'} />
 
             <div className="max-w-2xl mx-auto">
                 <div className="mb-6 flex items-center gap-2 text-sm text-slate-500">
-                    <Link href="/exchanges" className="hover:text-slate-900">Intercâmbios</Link>
+                    <Link href="/trips" className="hover:text-slate-900">Viagens</Link>
                     <span>/</span>
                     <span className="font-medium text-slate-900 dark:text-white">
-                        {isEditing ? 'Editar' : 'Novo'}
+                        {isEditing ? 'Editar' : 'Nova'}
                     </span>
                 </div>
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>{isEditing ? 'Editar Intercâmbio' : 'Planejar Novo Intercâmbio'}</CardTitle>
+                        <CardTitle>{isEditing ? 'Editar Viagem' : 'Planejar Nova Viagem'}</CardTitle>
                         <CardDescription>
                             Preencha os detalhes do seu próximo destino.
                         </CardDescription>
@@ -77,12 +77,12 @@ export default function Form({ exchange }: { exchange?: any }) {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="institution">Instituição (Opcional)</Label>
+                                <Label htmlFor="place">Local (Opcional)</Label>
                                 <Input
-                                    id="institution"
-                                    value={data.institution}
-                                    onChange={(e) => setData('institution', e.target.value)}
-                                    placeholder="Ex: ILAC School"
+                                    id="place"
+                                    value={data.place}
+                                    onChange={(e) => setData('place', e.target.value)}
+                                    placeholder="Ex: ILAC School, Hotel California"
                                 />
                             </div>
 
@@ -147,7 +147,7 @@ export default function Form({ exchange }: { exchange?: any }) {
                             </div>
 
                             <div className="flex justify-end gap-3 pt-4">
-                                <Link href="/exchanges">
+                                <Link href="/trips">
                                     <Button type="button" variant="outline">Cancelar</Button>
                                 </Link>
                                 <Button type="submit" disabled={processing}>

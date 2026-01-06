@@ -4,15 +4,15 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
-use App\Models\Exchange;
+use App\Models\Trip;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
 {
-    public function store(Request $request, Exchange $exchange)
+    public function store(Request $request, Trip $trip)
     {
-        if (Auth::user()->type !== 'admin' && $exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $trip->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -23,14 +23,14 @@ class EventController extends Controller
             'description' => 'nullable|string'
         ]);
 
-        $exchange->events()->create($data);
+        $trip->events()->create($data);
 
         return back()->with('success', 'Evento adicionado!');
     }
 
     public function update(Request $request, Event $event)
     {
-        if (Auth::user()->type !== 'admin' && $event->exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $event->trip->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -48,7 +48,7 @@ class EventController extends Controller
 
     public function destroy(Event $event)
     {
-        if (Auth::user()->type !== 'admin' && $event->exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $event->trip->user_id !== Auth::id()) {
             abort(403);
         }
 

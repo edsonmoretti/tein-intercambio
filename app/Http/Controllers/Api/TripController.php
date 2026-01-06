@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Exchange;
+use App\Models\Trip;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class ExchangeController extends Controller
+class TripController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,9 +16,9 @@ class ExchangeController extends Controller
     {
         $user = Auth::user();
         if ($user->type === 'admin') {
-            return Exchange::with('user')->get();
+            return Trip::with('user')->get();
         }
-        return Exchange::where('user_id', $user->id)->get();
+        return Trip::where('user_id', $user->id)->get();
     }
 
     /**
@@ -32,35 +32,35 @@ class ExchangeController extends Controller
             'type' => 'required|string',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after:start_date',
-            'institution' => 'nullable|string',
+            'place' => 'nullable|string',
         ]);
 
-        $exchange = Exchange::create(array_merge(
-            $request->only(['country', 'city', 'type', 'start_date', 'end_date', 'institution']),
+        $trip = Trip::create(array_merge(
+            $request->only(['country', 'city', 'type', 'start_date', 'end_date', 'place']),
             ['user_id' => Auth::id(), 'status' => 'planning']
         ));
 
-        return response()->json($exchange, 201);
+        return response()->json($trip, 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Exchange $exchange)
+    public function show(Trip $trip)
     {
-        if (Auth::user()->type !== 'admin' && $exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $trip->user_id !== Auth::id()) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        return $exchange->load('documents', 'tasks', 'budgets', 'events');
+        return $trip->load('documents', 'tasks', 'budgets', 'events');
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Exchange $exchange)
+    public function update(Request $request, Trip $trip)
     {
-        if (Auth::user()->type !== 'admin' && $exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $trip->user_id !== Auth::id()) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
@@ -68,46 +68,47 @@ class ExchangeController extends Controller
             'status' => 'nullable|string|in:planning,documents,confirmed,in_progress,completed',
             'country' => 'nullable|string',
             'city' => 'nullable|string',
+            'place' => 'nullable|string',
             // ... other fields
         ]);
 
         if ($request->has('status') && $request->status === 'confirmed') {
             // Rule: Check mandatory documents
-            $pendingMandatoryDocs = $exchange->documents()
+            $pendingMandatoryDocs = $trip->documents()
                 ->where('is_mandatory', true)
                 ->where('status', '!=', 'approved')
                 ->exists();
 
             if ($pendingMandatoryDocs) {
-                return response()->json(['message' => 'Cannot confirm exchange without approved mandatory documents.'], 422);
+                return response()->json(['message' => 'Cannot confirm trip without approved mandatory documents.'], 422);
             }
         }
 
         if ($request->has('status') && $request->status === 'completed') {
             // Rule: Check pending tasks
-            $pendingTasks = $exchange->tasks()
+            $pendingTasks = $trip->tasks()
                 ->where('status', '!=', 'completed')
                 ->exists();
 
             if ($pendingTasks) {
-                return response()->json(['message' => 'Cannot complete exchange with pending tasks.'], 422);
+                return response()->json(['message' => 'Cannot complete trip with pending tasks.'], 422);
             }
         }
 
-        $exchange->update($request->all());
-        return response()->json($exchange);
+        $trip->update($request->all());
+        return response()->json($trip);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Exchange $exchange)
+    public function destroy(Trip $trip)
     {
-        if (Auth::user()->type !== 'admin' && $exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $trip->user_id !== Auth::id()) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        $exchange->delete();
+        $trip->delete();
         return response()->json(null, 204);
     }
 }

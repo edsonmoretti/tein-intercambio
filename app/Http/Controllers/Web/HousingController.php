@@ -4,15 +4,15 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Housing;
-use App\Models\Exchange;
+use App\Models\Trip;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class HousingController extends Controller
 {
-    public function store(Request $request, Exchange $exchange)
+    public function store(Request $request, Trip $trip)
     {
-        if (Auth::user()->type !== 'admin' && $exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $trip->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -25,14 +25,14 @@ class HousingController extends Controller
             'cost' => 'nullable|numeric|min:0'
         ]);
 
-        $exchange->housings()->create($data);
+        $trip->housings()->create($data);
 
         return back()->with('success', 'Acomodação adicionada!');
     }
 
     public function update(Request $request, Housing $housing)
     {
-        if (Auth::user()->type !== 'admin' && $housing->exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $housing->trip->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -52,7 +52,7 @@ class HousingController extends Controller
 
     public function destroy(Housing $housing)
     {
-        if (Auth::user()->type !== 'admin' && $housing->exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $housing->trip->user_id !== Auth::id()) {
             abort(403);
         }
 

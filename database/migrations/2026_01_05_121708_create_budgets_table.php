@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('budgets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('exchange_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('trip_id')->constrained()->cascadeOnDelete();
             $table->string('category');
             $table->decimal('planned_amount', 10, 2);
             $table->decimal('spent_amount', 10, 2)->default(0);

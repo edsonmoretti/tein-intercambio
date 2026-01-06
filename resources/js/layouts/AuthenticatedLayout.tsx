@@ -21,7 +21,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const navItems = [
-        { name: 'Intercâmbios', href: '/exchanges', icon: Plane },
+        { name: 'Viagens', href: '/trips', icon: Plane },
         { name: 'Meu Perfil', href: '/profile', icon: User },
     ];
 
@@ -41,9 +41,9 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
                 sidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}>
                 <div className="flex h-16 items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800">
-                    <Link href="/exchanges" className="flex items-center gap-2">
+                    <Link href="/trips" className="flex items-center gap-2">
                         <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-                            Inter<span className="text-blue-600">Cambio</span>
+                            Tein<span className="text-blue-600">Viagens</span>
                         </span>
                     </Link>
                     <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-500">

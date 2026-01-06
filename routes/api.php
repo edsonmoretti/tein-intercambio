@@ -3,7 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ExchangeController;
+use App\Http\Controllers\Api\TripController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\PurchaseController;
@@ -18,7 +18,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'me']);
 
-    Route::apiResource('exchanges', ExchangeController::class);
+    Route::apiResource('trips', TripController::class);
     Route::apiResource('documents', DocumentController::class);
     Route::apiResource('tasks', TaskController::class);
     Route::apiResource('purchases', PurchaseController::class);

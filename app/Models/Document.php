@@ -10,8 +10,8 @@ class Document extends Model
     use HasFactory;
 
     protected $fillable = [
-        'exchange_id',
-        'exchange_member_id',
+        'trip_id',
+        'trip_member_id',
         'type',
         'expiration_date',
         'is_mandatory',
@@ -24,13 +24,13 @@ class Document extends Model
         'is_mandatory' => 'boolean',
     ];
 
-    public function exchange()
+    public function trip()
     {
-        return $this->belongsTo(Exchange::class);
+        return $this->belongsTo(Trip::class);
     }
 
     public function member()
     {
-        return $this->belongsTo(ExchangeMember::class, 'exchange_member_id');
+        return $this->belongsTo(TripMember::class, 'trip_member_id');
     }
 }

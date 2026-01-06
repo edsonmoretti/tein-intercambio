@@ -11,13 +11,13 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('tasks', function (Blueprint $table) {
-            $table->foreignId('exchange_member_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('trip_member_id')->nullable()->constrained()->onDelete('cascade');
         });
         Schema::table('purchases', function (Blueprint $table) {
-            $table->foreignId('exchange_member_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('trip_member_id')->nullable()->constrained()->onDelete('cascade');
         });
         Schema::table('documents', function (Blueprint $table) {
-            $table->foreignId('exchange_member_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('trip_member_id')->nullable()->constrained()->onDelete('cascade');
         });
     }
 
@@ -27,16 +27,16 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('tasks', function (Blueprint $table) {
-            $table->dropForeign(['exchange_member_id']);
-            $table->dropColumn('exchange_member_id');
+            $table->dropForeign(['trip_member_id']);
+            $table->dropColumn('trip_member_id');
         });
         Schema::table('purchases', function (Blueprint $table) {
-            $table->dropForeign(['exchange_member_id']);
-            $table->dropColumn('exchange_member_id');
+            $table->dropForeign(['trip_member_id']);
+            $table->dropColumn('trip_member_id');
         });
         Schema::table('documents', function (Blueprint $table) {
-            $table->dropForeign(['exchange_member_id']);
-            $table->dropColumn('exchange_member_id');
+            $table->dropForeign(['trip_member_id']);
+            $table->dropColumn('trip_member_id');
         });
     }
 };

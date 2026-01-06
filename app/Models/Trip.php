@@ -5,16 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Exchange extends Model
+class Trip extends Model
 {
-    /** @use HasFactory<\Database\Factories\ExchangeFactory> */
+    /** @use HasFactory<\Database\Factories\TripFactory> */
     use HasFactory;
 
     protected $fillable = [
         'user_id',
         'country',
         'city',
-        'institution',
+        'place',
         'start_date',
         'end_date',
         'type',
@@ -57,6 +57,6 @@ class Exchange extends Model
     }
     public function members()
     {
-        return $this->hasMany(ExchangeMember::class);
+        return $this->hasMany(TripMember::class);
     }
 }

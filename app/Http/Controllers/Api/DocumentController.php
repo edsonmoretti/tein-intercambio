@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Document;
-use App\Models\Exchange;
+use App\Models\Trip;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,7 +15,7 @@ class DocumentController extends Controller
      */
     public function index()
     {
-        $documents = Document::whereHas('exchange', function ($query) {
+        $documents = Document::whereHas('trip', function ($query) {
             $query->where('user_id', Auth::id());
         })->get();
 
@@ -35,14 +35,14 @@ class DocumentController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'exchange_id' => 'required|exists:exchanges,id',
+            'trip_id' => 'required|exists:trips,id',
             'type' => 'required|string',
             'expiration_date' => 'nullable|date',
             'is_mandatory' => 'boolean',
         ]);
 
-        $exchange = Exchange::findOrFail($request->exchange_id);
-        if ($exchange->user_id !== Auth::id() && Auth::user()->type !== 'admin') {
+        $trip = Trip::findOrFail($request->trip_id);
+        if ($trip->user_id !== Auth::id() && Auth::user()->type !== 'admin') {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
@@ -55,7 +55,7 @@ class DocumentController extends Controller
      */
     public function show(Document $document)
     {
-        if ($document->exchange->user_id !== Auth::id() && Auth::user()->type !== 'admin') {
+        if ($document->trip->user_id !== Auth::id() && Auth::user()->type !== 'admin') {
             return response()->json(['message' => 'Forbidden'], 403);
         }
         return $document;
@@ -66,7 +66,7 @@ class DocumentController extends Controller
      */
     public function update(Request $request, Document $document)
     {
-        if ($document->exchange->user_id !== Auth::id() && Auth::user()->type !== 'admin') {
+        if ($document->trip->user_id !== Auth::id() && Auth::user()->type !== 'admin') {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
@@ -85,7 +85,7 @@ class DocumentController extends Controller
      */
     public function destroy(Document $document)
     {
-        if ($document->exchange->user_id !== Auth::id() && Auth::user()->type !== 'admin') {
+        if ($document->trip->user_id !== Auth::id() && Auth::user()->type !== 'admin') {
             return response()->json(['message' => 'Forbidden'], 403);
         }
         $document->delete();

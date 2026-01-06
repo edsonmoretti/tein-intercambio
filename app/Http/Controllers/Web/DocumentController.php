@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Exchange;
+use App\Models\Trip;
 use App\Models\Document;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class DocumentController extends Controller
 {
-    public function store(Request $request, Exchange $exchange)
+    public function store(Request $request, Trip $trip)
     {
-        if (Auth::user()->type !== 'admin' && $exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $trip->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -21,7 +21,7 @@ class DocumentController extends Controller
             'is_mandatory' => 'boolean',
             'expiration_date' => 'nullable|date',
             'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'exchange_member_id' => 'nullable' // Can be 'all' or specific ID or null
+            'trip_member_id' => 'nullable' // Can be 'all' or specific ID or null
         ]);
 
         $status = 'pending';
@@ -32,21 +32,21 @@ class DocumentController extends Controller
         }
 
         $membersToAssign = [];
-        if ($data['exchange_member_id'] === 'all') {
-            $membersToAssign = $exchange->members()->pluck('id')->toArray();
-        } elseif (!empty($data['exchange_member_id'])) {
-            $membersToAssign = [$data['exchange_member_id']];
+        if ($data['trip_member_id'] === 'all') {
+            $membersToAssign = $trip->members()->pluck('id')->toArray();
+        } elseif (!empty($data['trip_member_id'])) {
+            $membersToAssign = [$data['trip_member_id']];
         }
 
         // If no member selected (or empty list), just create one generic/unassigned
         if (empty($membersToAssign)) {
-            $exchange->documents()->create([
+            $trip->documents()->create([
                 'type' => $data['type'],
                 'is_mandatory' => $data['is_mandatory'] ?? false,
                 'expiration_date' => $data['expiration_date'] ?? null,
                 'file_path' => $path,
                 'status' => $status,
-                'exchange_member_id' => null
+                'trip_member_id' => null
             ]);
         } else {
             foreach ($membersToAssign as $memberId) {
@@ -56,13 +56,13 @@ class DocumentController extends Controller
                 // However, usually 'all' is for "Passport" requirement. User won't upload 3 passports at once.
                 // But just in case, we use the same path if provided.
 
-                $exchange->documents()->create([
+                $trip->documents()->create([
                     'type' => $data['type'],
                     'is_mandatory' => $data['is_mandatory'] ?? false,
                     'expiration_date' => $data['expiration_date'] ?? null,
                     'file_path' => $path,
                     'status' => $status,
-                    'exchange_member_id' => $memberId
+                    'trip_member_id' => $memberId
                 ]);
             }
         }
@@ -72,7 +72,7 @@ class DocumentController extends Controller
 
     public function update(Request $request, Document $document)
     {
-        if (Auth::user()->type !== 'admin' && $document->exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $document->trip->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -100,7 +100,7 @@ class DocumentController extends Controller
 
     public function destroy(Document $document)
     {
-        if (Auth::user()->type !== 'admin' && $document->exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $document->trip->user_id !== Auth::id()) {
             abort(403);
         }
 

@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('events', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('exchange_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('trip_id')->constrained()->cascadeOnDelete();
             $table->string('title'); // VISA interview, Flight, Classes start
             $table->dateTime('date');
             $table->string('type')->nullable();

@@ -10,8 +10,8 @@ class Task extends Model
     use HasFactory;
 
     protected $fillable = [
-        'exchange_id',
-        'exchange_member_id',
+        'trip_id',
+        'trip_member_id',
         'category',
         'description',
         'due_date',
@@ -22,13 +22,13 @@ class Task extends Model
         'due_date' => 'date',
     ];
 
-    public function exchange()
+    public function trip()
     {
-        return $this->belongsTo(Exchange::class);
+        return $this->belongsTo(Trip::class);
     }
 
     public function member()
     {
-        return $this->belongsTo(ExchangeMember::class, 'exchange_member_id');
+        return $this->belongsTo(TripMember::class, 'trip_member_id');
     }
 }

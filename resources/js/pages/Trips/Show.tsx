@@ -39,7 +39,7 @@ const PURCHASE_CATEGORIES = [
     { id: 'other', label: 'Outros' },
 ];
 
-export default function Show({ exchange }: { exchange: any }) {
+export default function Show({ trip }: { trip: any }) {
     const [activeTab, setActiveTab] = useState('details');
     // Checklist Filtering
     const [checklistFilter, setChecklistFilter] = useState<string>('all');
@@ -55,12 +55,12 @@ export default function Show({ exchange }: { exchange: any }) {
         description: '',
         category: 'before_go',
         due_date: '',
-        exchange_member_id: '',
+        trip_member_id: '',
     });
 
     const submitTask = (e: React.FormEvent) => {
         e.preventDefault();
-        postTask(`/exchanges/${exchange.id}/tasks`, {
+        postTask(`/trips/${trip.id}/tasks`, {
             onSuccess: () => resetTask(),
         });
     };
@@ -93,7 +93,7 @@ export default function Show({ exchange }: { exchange: any }) {
         display_cost: '',
         category: 'clothing',
         type: 'before',
-        exchange_member_id: '',
+        trip_member_id: '',
     });
 
     const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,7 +110,7 @@ export default function Show({ exchange }: { exchange: any }) {
 
     const submitPurchase = (e: React.FormEvent) => {
         e.preventDefault();
-        postPurchase(`/exchanges/${exchange.id}/purchases`, {
+        postPurchase(`/trips/${trip.id}/purchases`, {
             onSuccess: () => {
                 resetPurchase();
                 setPurchaseData((prev) => ({ ...prev, item: '', estimated_cost: '', display_cost: '' }));
@@ -134,13 +134,13 @@ export default function Show({ exchange }: { exchange: any }) {
         type: '',
         expiration_date: '',
         is_mandatory: false,
-        exchange_member_id: 'all',
+        trip_member_id: 'all',
         file: null as File | null,
     });
 
     const submitDocument = (e: React.FormEvent) => {
         e.preventDefault();
-        postDocument(`/exchanges/${exchange.id}/documents`, {
+        postDocument(`/trips/${trip.id}/documents`, {
             onSuccess: () => resetDocument(),
         });
     };
@@ -198,7 +198,7 @@ export default function Show({ exchange }: { exchange: any }) {
 
     const submitBudget = (e: React.FormEvent) => {
         e.preventDefault();
-        postBudget(`/exchanges/${exchange.id}/budgets`, {
+        postBudget(`/trips/${trip.id}/budgets`, {
             onSuccess: () => resetBudget(),
         });
     };
@@ -208,7 +208,7 @@ export default function Show({ exchange }: { exchange: any }) {
     };
 
     // Filtered Tasks
-    const tasks = exchange.tasks || []; // Ensure tasks is array
+    const tasks = trip.tasks || []; // Ensure tasks is array
     const filteredTasks = tasks.filter((task: any) => {
         if (checklistFilter === 'all') return true;
         return task.category === checklistFilter;
@@ -232,7 +232,7 @@ export default function Show({ exchange }: { exchange: any }) {
 
     const submitHousing = (e: React.FormEvent) => {
         e.preventDefault();
-        postHousing(`/exchanges/${exchange.id}/housings`, {
+        postHousing(`/trips/${trip.id}/housings`, {
             onSuccess: () => resetHousing(),
         });
     };
@@ -255,28 +255,28 @@ export default function Show({ exchange }: { exchange: any }) {
 
     const submitMember = (e: React.FormEvent) => {
         e.preventDefault();
-        postMember(`/exchanges/${exchange.id}/members`, {
+        postMember(`/trips/${trip.id}/members`, {
             onSuccess: () => resetMember(),
         });
     };
 
     const deleteMember = (id: number) => {
-        if (confirm('Remover participante?')) router.delete(`/exchange-members/${id}`, { preserveScroll: true });
+        if (confirm('Remover participante?')) router.delete(`/trip-members/${id}`, { preserveScroll: true });
     };
 
     // Budget Calculations
-    const totalBudget = exchange.budgets?.reduce((acc: number, curr: any) => acc + Number(curr.planned_amount), 0) || 0;
-    const totalEstimated = exchange.purchases?.reduce((acc: number, curr: any) => acc + Number(curr.estimated_cost || 0), 0) || 0;
-    const totalActual = exchange.purchases?.reduce((acc: number, curr: any) => acc + Number(curr.actual_cost || 0), 0) || 0;
+    const totalBudget = trip.budgets?.reduce((acc: number, curr: any) => acc + Number(curr.planned_amount), 0) || 0;
+    const totalEstimated = trip.purchases?.reduce((acc: number, curr: any) => acc + Number(curr.estimated_cost || 0), 0) || 0;
+    const totalActual = trip.purchases?.reduce((acc: number, curr: any) => acc + Number(curr.actual_cost || 0), 0) || 0;
 
     return (
         <AuthenticatedLayout>
-            <Head title={`${exchange.city}, ${exchange.country}`} />
+            <Head title={`${trip.city}, ${trip.country}`} />
 
             <div className="mb-6">
                 <div className="mb-2 flex items-center gap-2 text-sm text-slate-500">
-                    <Link href="/exchanges" className="hover:text-slate-900">
-                        Intercâmbios
+                    <Link href="/trips" className="hover:text-slate-900">
+                        Viagens
                     </Link>
                     <span>/</span>
                     <span className="font-medium text-slate-900 dark:text-white">Detalhes</span>
@@ -284,26 +284,26 @@ export default function Show({ exchange }: { exchange: any }) {
                 <div className="flex items-start justify-between">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-                            {exchange.city}, {exchange.country}
+                            {trip.city}, {trip.country}
                         </h1>
                         <p className="mt-1 flex items-center gap-2 text-slate-500">
                             <SchoolIcon className="h-4 w-4" />
-                            {exchange.institution ? (
+                            {trip.place ? (
                                 <a
-                                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${exchange.institution}, ${exchange.city}, ${exchange.country}`)}`}
+                                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${trip.place}, ${trip.city}, ${trip.country}`)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="transition-colors hover:text-blue-600 hover:underline"
                                 >
-                                    {exchange.institution}
+                                    {trip.place}
                                 </a>
                             ) : (
-                                'Instituição não definida'
+                                'Local não definido'
                             )}
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <Link href={`/exchanges/${exchange.id}/edit`}>
+                        <Link href={`/trips/${trip.id}/edit`}>
                             <Button variant="outline" className="dark:text-white">
                                 Editar
                             </Button>
@@ -333,7 +333,7 @@ export default function Show({ exchange }: { exchange: any }) {
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold">
-                                    {exchange.tasks?.filter((t: any) => t.status === 'completed').length} / {exchange.tasks?.length || 0}
+                                    {trip.tasks?.filter((t: any) => t.status === 'completed').length} / {trip.tasks?.length || 0}
                                 </div>
                             </CardContent>
                         </Card>
@@ -353,7 +353,7 @@ export default function Show({ exchange }: { exchange: any }) {
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold">
-                                    {exchange.purchases?.filter((p: any) => p.status === 'completed').length} / {exchange.purchases?.length || 0}
+                                    {trip.purchases?.filter((p: any) => p.status === 'completed').length} / {trip.purchases?.length || 0}
                                 </div>
                             </CardContent>
                         </Card>
@@ -373,7 +373,7 @@ export default function Show({ exchange }: { exchange: any }) {
                     <Card>
                         <CardHeader>
                             <CardTitle>Adicionar Participante</CardTitle>
-                            <CardDescription>Cadastre quem participará deste intercâmbio (você, cônjuge, filho(a), etc).</CardDescription>
+                            <CardDescription>Cadastre quem participará desta viagem (você, cônjuge, filho(a), etc).</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={submitMember} className="flex items-end gap-4">
@@ -394,7 +394,7 @@ export default function Show({ exchange }: { exchange: any }) {
                     </Card>
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {(exchange.members || []).map((member: any) => (
+                        {(trip.members || []).map((member: any) => (
                             <Card key={member.id} className="relative">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="flex items-center gap-2 text-base font-medium">
@@ -508,11 +508,11 @@ export default function Show({ exchange }: { exchange: any }) {
 
                                 <div className="mt-6 space-y-2">
                                     <h4 className="mb-3 text-sm font-medium text-slate-500">Orçamentos Definidos</h4>
-                                    {(exchange.budgets || []).length === 0 && (
+                                    {(trip.budgets || []).length === 0 && (
                                         <p className="text-center text-sm text-slate-400 italic">Nenhum orçamento definido.</p>
                                     )}
                                     <div className="max-h-[200px] space-y-2 overflow-y-auto pr-2">
-                                        {(exchange.budgets || []).map((budget: any) => (
+                                        {(trip.budgets || []).map((budget: any) => (
                                             <div
                                                 key={budget.id}
                                                 className="flex items-center justify-between rounded border bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50"
@@ -553,12 +553,12 @@ export default function Show({ exchange }: { exchange: any }) {
                                 </div>
                                 <div className="w-full space-y-2 md:w-[200px]">
                                     <Label>Atribuir a (Opcional)</Label>
-                                    <Select value={taskData.exchange_member_id} onValueChange={(val) => setTaskData('exchange_member_id', val)}>
+                                    <Select value={taskData.trip_member_id} onValueChange={(val) => setTaskData('trip_member_id', val)}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Todos" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {(exchange.members || []).map((m: any) => (
+                                            {(trip.members || []).map((m: any) => (
                                                 <SelectItem key={m.id} value={m.id.toString()}>
                                                     {m.name}
                                                 </SelectItem>
@@ -740,15 +740,15 @@ export default function Show({ exchange }: { exchange: any }) {
                                 <div className="space-y-2 md:col-span-1">
                                     <Label>Atribuir a (Opcional)</Label>
                                     <Select
-                                        value={purchaseData.exchange_member_id}
-                                        onValueChange={(val) => setPurchaseData('exchange_member_id', val)}
+                                        value={purchaseData.trip_member_id}
+                                        onValueChange={(val) => setPurchaseData('trip_member_id', val)}
                                     >
                                         <SelectTrigger>
                                             {' '}
                                             <SelectValue placeholder="Todos" />{' '}
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {(exchange.members || []).map((m: any) => (
+                                            {(trip.members || []).map((m: any) => (
                                                 <SelectItem key={m.id} value={m.id.toString()}>
                                                     {m.name}
                                                 </SelectItem>
@@ -778,7 +778,7 @@ export default function Show({ exchange }: { exchange: any }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                {(exchange.purchases || []).map((purchase: any) => (
+                                {(trip.purchases || []).map((purchase: any) => (
                                     <tr key={purchase.id} className="text-slate-900 dark:text-slate-100">
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-3">
@@ -837,7 +837,7 @@ export default function Show({ exchange }: { exchange: any }) {
                                         </td>
                                     </tr>
                                 ))}
-                                {(!exchange.purchases || exchange.purchases.length === 0) && (
+                                {(!trip.purchases || trip.purchases.length === 0) && (
                                     <tr>
                                         <td colSpan={6} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
                                             Nenhuma compra planejada ainda.
@@ -876,15 +876,15 @@ export default function Show({ exchange }: { exchange: any }) {
                                 <div className="w-full space-y-2 md:w-[200px]">
                                     <Label>Atribuir a</Label>
                                     <Select
-                                        value={documentData.exchange_member_id}
-                                        onValueChange={(val) => setDocumentData('exchange_member_id', val)}
+                                        value={documentData.trip_member_id}
+                                        onValueChange={(val) => setDocumentData('trip_member_id', val)}
                                     >
                                         <SelectTrigger>
                                             <SelectValue placeholder="Todos" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">Todos os Participantes</SelectItem>
-                                            {(exchange.members || []).map((m: any) => (
+                                            {(trip.members || []).map((m: any) => (
                                                 <SelectItem key={m.id} value={m.id.toString()}>
                                                     {m.name}
                                                 </SelectItem>
@@ -908,14 +908,14 @@ export default function Show({ exchange }: { exchange: any }) {
                     </Card>
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {(!exchange.documents || exchange.documents.length === 0) && (
+                        {(!trip.documents || trip.documents.length === 0) && (
                             <div className="col-span-full rounded-lg border border-dashed border-slate-200 bg-slate-50 py-10 text-center text-slate-500 dark:border-slate-800 dark:bg-slate-900/50">
                                 <FileText className="mx-auto mb-2 h-10 w-10 opacity-20" />
                                 <p>Nenhum documento cadastrado.</p>
                             </div>
                         )}
 
-                        {(exchange.documents || []).map((doc: any) => (
+                        {(trip.documents || []).map((doc: any) => (
                             <Card key={doc.id} className="group relative overflow-hidden">
                                 <CardHeader className="pb-2">
                                     <div className="flex items-start justify-between">
@@ -1122,7 +1122,7 @@ export default function Show({ exchange }: { exchange: any }) {
                     </Card>
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {(exchange.housings || []).map((housing: any) => (
+                        {(trip.housings || []).map((housing: any) => (
                             <Card key={housing.id} className="relative overflow-hidden">
                                 <CardHeader className="pb-2">
                                     <div className="flex items-start justify-between">

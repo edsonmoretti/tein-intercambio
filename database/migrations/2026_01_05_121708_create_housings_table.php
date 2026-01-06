@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('housings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('exchange_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('trip_id')->constrained()->cascadeOnDelete();
             $table->string('type'); // host_family, residence, rental
             $table->string('address');
             $table->string('contact_info')->nullable();

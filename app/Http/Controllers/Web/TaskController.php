@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Exchange;
+use App\Models\Trip;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
-    public function store(Request $request, Exchange $exchange)
+    public function store(Request $request, Trip $trip)
     {
-        if (Auth::user()->type !== 'admin' && $exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $trip->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -20,17 +20,17 @@ class TaskController extends Controller
             'description' => 'required|string',
             'category' => 'required|string',
             'due_date' => 'nullable|date',
-            'exchange_member_id' => 'nullable|exists:exchange_members,id'
+            'trip_member_id' => 'nullable|exists:trip_members,id'
         ]);
 
-        $exchange->tasks()->create($request->all());
+        $trip->tasks()->create($request->all());
 
         return back()->with('success', 'Tarefa adicionada!');
     }
 
     public function update(Request $request, Task $task)
     {
-        if (Auth::user()->type !== 'admin' && $task->exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $task->trip->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -47,7 +47,7 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
-        if (Auth::user()->type !== 'admin' && $task->exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $task->trip->user_id !== Auth::id()) {
             abort(403);
         }
 

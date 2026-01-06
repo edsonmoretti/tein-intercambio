@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('exchange_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('trip_id')->constrained()->cascadeOnDelete();
             $table->string('type'); // passport, visa, insurance, acceptance_letter
             $table->date('expiration_date')->nullable();
             $table->boolean('is_mandatory')->default(false);

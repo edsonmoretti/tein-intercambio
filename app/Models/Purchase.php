@@ -10,8 +10,8 @@ class Purchase extends Model
     use HasFactory;
 
     protected $fillable = [
-        'exchange_id',
-        'exchange_member_id',
+        'trip_id',
+        'trip_member_id',
         'type',
         'item',
         'category',
@@ -25,13 +25,13 @@ class Purchase extends Model
         'actual_cost' => 'decimal:2',
     ];
 
-    public function exchange()
+    public function trip()
     {
-        return $this->belongsTo(Exchange::class);
+        return $this->belongsTo(Trip::class);
     }
 
     public function member()
     {
-        return $this->belongsTo(ExchangeMember::class, 'exchange_member_id');
+        return $this->belongsTo(TripMember::class, 'trip_member_id');
     }
 }

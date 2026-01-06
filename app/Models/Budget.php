@@ -10,7 +10,7 @@ class Budget extends Model
     use HasFactory;
 
     protected $fillable = [
-        'exchange_id',
+        'trip_id',
         'category',
         'planned_amount',
         'spent_amount',
@@ -22,8 +22,8 @@ class Budget extends Model
         'spent_amount' => 'decimal:2',
     ];
 
-    public function exchange()
+    public function trip()
     {
-        return $this->belongsTo(Exchange::class);
+        return $this->belongsTo(Trip::class);
     }
 }

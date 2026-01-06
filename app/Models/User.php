@@ -52,8 +52,8 @@ class User extends Authenticatable
         ];
     }
 
-    public function exchanges()
+    public function trips()
     {
-        return $this->hasMany(Exchange::class);
+        return $this->hasMany(Trip::class);
     }
 }

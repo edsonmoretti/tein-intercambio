@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Exchange;
+use App\Models\Trip;
 use App\Models\Purchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PurchaseController extends Controller
 {
-    public function store(Request $request, Exchange $exchange)
+    public function store(Request $request, Trip $trip)
     {
-        if (Auth::user()->type !== 'admin' && $exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $trip->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -21,17 +21,17 @@ class PurchaseController extends Controller
             'category' => 'required|string',
             'estimated_cost' => 'required|numeric',
             'type' => 'required|in:before,after',
-            'exchange_member_id' => 'nullable|exists:exchange_members,id'
+            'trip_member_id' => 'nullable|exists:trip_members,id'
         ]);
 
-        $exchange->purchases()->create($data);
+        $trip->purchases()->create($data);
 
         return back()->with('success', 'Compra planejada!');
     }
 
     public function update(Request $request, Purchase $purchase)
     {
-        if (Auth::user()->type !== 'admin' && $purchase->exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $purchase->trip->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -42,7 +42,7 @@ class PurchaseController extends Controller
 
     public function destroy(Purchase $purchase)
     {
-        if (Auth::user()->type !== 'admin' && $purchase->exchange->user_id !== Auth::id()) {
+        if (Auth::user()->type !== 'admin' && $purchase->trip->user_id !== Auth::id()) {
             abort(403);
         }
 

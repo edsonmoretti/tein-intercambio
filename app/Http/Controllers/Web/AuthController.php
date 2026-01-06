@@ -30,7 +30,7 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('exchanges.index'));
+        return redirect()->intended(route('trips.index'));
     }
 
     public function destroy(Request $request)

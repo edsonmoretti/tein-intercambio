@@ -10,9 +10,9 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('exchange_members', function (Blueprint $table) {
+        Schema::create('trip_members', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('exchange_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('trip_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null'); // Linked user account
             $table->string('name'); // Display name (e.g. "Edson", "Maria")
             $table->timestamps();
@@ -24,6 +24,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('exchange_members');
+        Schema::dropIfExists('trip_members');
     }
 };
