@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, CheckCircle, Circle, MapPin, Calendar, CreditCard, FileText, ShoppingBag, PiggyBank } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, Circle, MapPin, Calendar, CreditCard, FileText, ShoppingBag, PiggyBank, Upload, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -87,6 +87,24 @@ export default function Show({ exchange }: { exchange: any }) {
 
     const deletePurchase = (id: number) => {
         if (confirm('Delete purchase?')) router.delete(`/purchases/${id}`, { preserveScroll: true });
+    };
+
+    // Document Form
+    const { data: documentData, setData: setDocumentData, post: postDocument, reset: resetDocument, processing: documentProcessing } = useForm({
+        type: '',
+        expiration_date: '',
+        is_mandatory: false
+    });
+
+    const submitDocument = (e: React.FormEvent) => {
+        e.preventDefault();
+        postDocument(`/exchanges/${exchange.id}/documents`, {
+            onSuccess: () => resetDocument()
+        });
+    };
+
+    const deleteDocument = (id: number) => {
+        if (confirm('Remover documento?')) router.delete(`/documents/${id}`, { preserveScroll: true });
     };
 
     const togglePurchase = (purchase: any) => {
@@ -462,10 +480,142 @@ export default function Show({ exchange }: { exchange: any }) {
                     </div>
                 </TabsContent>
 
-                <TabsContent value="documents">
-                    <div className="text-center py-10 text-slate-500">
-                        <FileText className="h-10 w-10 mx-auto mb-2 opacity-20" />
-                        <p>Gestão de documentos em breve...</p>
+                <TabsContent value="documents" className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Adicionar Documento</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <form onSubmit={submitDocument} className="flex flex-col md:flex-row gap-4 items-end">
+                                <div className="flex-1 space-y-2 w-full">
+                                    <Label>Nome do Documento</Label>
+                                    <Input
+                                        value={documentData.type}
+                                        onChange={e => setDocumentData('type', e.target.value)}
+                                        placeholder="Ex: Passaporte, Visto..."
+                                        required
+                                    />
+                                </div>
+                                <div className="w-full md:w-[200px] space-y-2">
+                                    <Label>Validade (Opcional)</Label>
+                                    <Input
+                                        type="date"
+                                        value={documentData.expiration_date}
+                                        onChange={e => setDocumentData('expiration_date', e.target.value)}
+                                    />
+                                </div>
+                                <div className="w-full md:w-[200px] space-y-2">
+                                    <Label>Arquivo (Opcional)</Label>
+                                    <Input
+                                        type="file"
+                                        onChange={e => e.target.files && setDocumentData('file', e.target.files[0])}
+                                        className="cursor-pointer"
+                                    />
+                                </div>
+                                <Button type="submit" disabled={documentProcessing}>
+                                    Adicionar
+                                </Button>
+                            </form>
+                        </CardContent>
+                    </Card>
+
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {(!exchange.documents || exchange.documents.length === 0) && (
+                            <div className="col-span-full text-center py-10 text-slate-500 bg-slate-50 rounded-lg dark:bg-slate-900/50 border border-dashed border-slate-200 dark:border-slate-800">
+                                <FileText className="h-10 w-10 mx-auto mb-2 opacity-20" />
+                                <p>Nenhum documento cadastrado.</p>
+                            </div>
+                        )}
+
+                        {(exchange.documents || []).map((doc: any) => (
+                            <Card key={doc.id} className="relative overflow-hidden group">
+                                <CardHeader className="pb-2">
+                                    <div className="flex justify-between items-start">
+                                        <CardTitle className="text-base font-medium flex items-center gap-2">
+                                            <FileText className="h-4 w-4 text-slate-500" />
+                                            {doc.type}
+                                        </CardTitle>
+                                        <div className="flex gap-1 -mr-2 -mt-2">
+                                            {doc.file_path && (
+                                                <a href={`/storage/${doc.file_path}`} target="_blank" rel="noopener noreferrer">
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-blue-500" title="Visualizar">
+                                                        <Eye className="h-3 w-3" />
+                                                    </Button>
+                                                </a>
+                                            )}
+                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-red-500" onClick={() => deleteDocument(doc.id)} title="Remover">
+                                                <Trash2 className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-slate-500">Status:</span>
+                                            <span className={cn(
+                                                "px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider",
+                                                doc.status === 'valid' ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
+                                                    doc.status === 'expired' ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" :
+                                                        "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                                            )}>
+                                                {doc.status === 'pending' ? 'Pendente' :
+                                                    doc.status === 'valid' ? 'Válido' :
+                                                        doc.status === 'sent' ? 'Enviado' :
+                                                            doc.status === 'expired' ? 'Expirado' : doc.status}
+                                            </span>
+                                        </div>
+                                        {doc.expiration_date && (
+                                            <div className="flex justify-between">
+                                                <span className="text-slate-500">Validade:</span>
+                                                <span className={cn(
+                                                    new Date(doc.expiration_date) < new Date() ? "text-red-500 font-bold" : "text-slate-700 dark:text-slate-300"
+                                                )}>
+                                                    {new Date(doc.expiration_date).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        <div className="pt-2 flex justify-end">
+                                            {!doc.file_path && (
+                                                <label className="text-xs flex items-center gap-1 cursor-pointer text-blue-600 hover:text-blue-700 dark:text-blue-400">
+                                                    <Upload className="h-3 w-3" /> Anexar Arquivo
+                                                    <input
+                                                        type="file"
+                                                        className="hidden"
+                                                        onChange={(e) => {
+                                                            if (e.target.files?.[0]) {
+                                                                router.post(`/documents/${doc.id}`, {
+                                                                    _method: 'put',
+                                                                    file: e.target.files[0]
+                                                                }, { preserveScroll: true });
+                                                            }
+                                                        }}
+                                                    />
+                                                </label>
+                                            )}
+                                            {doc.file_path && (
+                                                <label className="text-xs flex items-center gap-1 cursor-pointer text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                                    <Upload className="h-3 w-3" /> Substituir
+                                                    <input
+                                                        type="file"
+                                                        className="hidden"
+                                                        onChange={(e) => {
+                                                            if (e.target.files?.[0]) {
+                                                                router.post(`/documents/${doc.id}`, {
+                                                                    _method: 'put',
+                                                                    file: e.target.files[0]
+                                                                }, { preserveScroll: true });
+                                                            }
+                                                        }}
+                                                    />
+                                                </label>
+                                            )}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
                     </div>
                 </TabsContent>
             </Tabs>

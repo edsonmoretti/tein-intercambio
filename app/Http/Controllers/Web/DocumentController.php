@@ -16,13 +16,19 @@ class DocumentController extends Controller
             abort(403);
         }
 
-        $request->validate([
+        $data = $request->validate([
             'type' => 'required|string',
             'is_mandatory' => 'boolean',
             'expiration_date' => 'nullable|date',
+            'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
-        $exchange->documents()->create($request->all());
+        if ($request->hasFile('file')) {
+            $data['file_path'] = $request->file('file')->store('documents', 'public');
+            $data['status'] = 'sent';
+        }
+
+        $exchange->documents()->create($data);
 
         return back()->with('success', 'Documento adicionado!');
     }
@@ -33,8 +39,24 @@ class DocumentController extends Controller
             abort(403);
         }
 
-        // Simple status update or full update
-        $document->update($request->all());
+        $data = $request->validate([
+            'type' => 'sometimes|string',
+            'is_mandatory' => 'sometimes|boolean',
+            'expiration_date' => 'nullable|date',
+            'status' => 'sometimes|string',
+            'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ]);
+
+        if ($request->hasFile('file')) {
+            // Delete old file if exists
+            if ($document->file_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($document->file_path);
+            }
+            $data['file_path'] = $request->file('file')->store('documents', 'public');
+            $data['status'] = 'sent'; // Auto update status on new file
+        }
+
+        $document->update($data);
 
         return back()->with('success', 'Documento atualizado!');
     }
@@ -43,6 +65,10 @@ class DocumentController extends Controller
     {
         if (Auth::user()->type !== 'admin' && $document->exchange->user_id !== Auth::id()) {
             abort(403);
+        }
+
+        if ($document->file_path) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($document->file_path);
         }
 
         $document->delete();

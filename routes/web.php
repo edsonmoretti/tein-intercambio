@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\ExchangeController;
 use App\Http\Controllers\Web\TaskController;
 use App\Http\Controllers\Web\PurchaseController;
 use App\Http\Controllers\Web\DocumentController;
+use App\Http\Controllers\Web\ProfileController;
 
 Route::middleware('guest')->group(function () {
     Route::get('/', function () {
@@ -37,4 +38,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/exchanges/{exchange}/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });

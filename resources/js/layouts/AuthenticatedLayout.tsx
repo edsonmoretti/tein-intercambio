@@ -10,12 +10,19 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
+interface User {
+    id: number;
+    name: string;
+    email: string;
+}
+
 export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
-    const user = usePage().props.auth.user;
+    const user = usePage().props.auth.user as User;
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const navItems = [
         { name: 'Meus Intercâmbios', href: '/exchanges', icon: Plane },
+        { name: 'Meu Perfil', href: '/profile', icon: User },
     ];
 
     return (
