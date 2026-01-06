@@ -66,6 +66,11 @@ export default function Show({ trip }: { trip: any }) {
     };
 
     const toggleTask = (task: any) => {
+        if (task.status === 'completed') {
+            if (!confirm('Deseja realmente desmarcar esta tarefa como não concluída?')) {
+                return;
+            }
+        }
         router.put(
             `/tasks/${task.id}`,
             {
@@ -76,7 +81,7 @@ export default function Show({ trip }: { trip: any }) {
     };
 
     const deleteTask = (id: number) => {
-        if (confirm('Delete task?')) router.delete(`/tasks/${id}`, { preserveScroll: true });
+        if (confirm('Apagar tarefa?')) router.delete(`/tasks/${id}`, { preserveScroll: true });
     };
 
     // Purchase Form
