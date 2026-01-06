@@ -132,12 +132,36 @@ export default function Show({ exchange }: { exchange: any }) {
         }
     };
 
+    // Budget Form
+    const { data: budgetData, setData: setBudgetData, post: postBudget, reset: resetBudget, processing: budgetProcessing } = useForm({
+        category: '',
+        planned_amount: '',
+        spent_amount: '',
+        period: 'monthly'
+    });
+
+    const submitBudget = (e: React.FormEvent) => {
+        e.preventDefault();
+        postBudget(`/exchanges/${exchange.id}/budgets`, {
+            onSuccess: () => resetBudget()
+        });
+    };
+
+    const deleteBudget = (id: number) => {
+        if (confirm('Remover orçamento?')) router.delete(`/budgets/${id}`, { preserveScroll: true });
+    };
+
     // Filtered Tasks
     const tasks = exchange.tasks || []; // Ensure tasks is array
     const filteredTasks = tasks.filter((task: any) => {
         if (checklistFilter === 'all') return true;
         return task.category === checklistFilter;
     });
+
+    // Budget Calculations
+    const totalBudget = exchange.budgets?.reduce((acc: number, curr: any) => acc + Number(curr.planned_amount), 0) || 0;
+    const totalEstimated = exchange.purchases?.reduce((acc: number, curr: any) => acc + Number(curr.estimated_cost || 0), 0) || 0;
+    const totalActual = exchange.purchases?.reduce((acc: number, curr: any) => acc + Number(curr.actual_cost || 0), 0) || 0;
 
     return (
         <AuthenticatedLayout>
@@ -167,6 +191,7 @@ export default function Show({ exchange }: { exchange: any }) {
             <Tabs value={activeTab} className="space-y-4" onValueChange={setActiveTab}>
                 <TabsList>
                     <TabsTrigger value="details">Resumo</TabsTrigger>
+                    <TabsTrigger value="budget">Financeiro</TabsTrigger>
                     <TabsTrigger value="checklist">Checklist</TabsTrigger>
                     <TabsTrigger value="purchases">Compras</TabsTrigger>
                     <TabsTrigger value="documents">Documentos</TabsTrigger>
@@ -187,12 +212,12 @@ export default function Show({ exchange }: { exchange: any }) {
                         </Card>
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Gasto Estimado</CardTitle>
-                                <CreditCard className="h-4 w-4 text-slate-500" />
+                                <CardTitle className="text-sm font-medium">Orçamento Total</CardTitle>
+                                <PiggyBank className="h-4 w-4 text-slate-500" />
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                                    ${Number(exchange.purchases?.reduce((acc: number, curr: any) => acc + Number(curr.estimated_cost || 0), 0) || 0).toFixed(2)}
+                                    ${Number(totalBudget).toFixed(2)}
                                 </div>
                             </CardContent>
                         </Card>
@@ -209,12 +234,121 @@ export default function Show({ exchange }: { exchange: any }) {
                         </Card>
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Gasto Real</CardTitle>
-                                <PiggyBank className="h-4 w-4 text-slate-500" />
+                                <CardTitle className="text-sm font-medium">Gasto Real (Compras)</CardTitle>
+                                <CreditCard className="h-4 w-4 text-slate-500" />
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                                    ${Number(exchange.purchases?.reduce((acc: number, curr: any) => acc + Number(curr.actual_cost || 0), 0) || 0).toFixed(2)}
+                                    ${Number(totalActual).toFixed(2)}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="budget" className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Visão Geral Financeira</CardTitle>
+                                <CardDescription>Comparativo entre Orçamento Planejado, Estimativas de Compra e Gastos Reais.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-8">
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="font-medium">Orçamento Definido</span>
+                                        <span className="font-bold">${totalBudget.toFixed(2)}</span>
+                                    </div>
+                                    <div className="h-3 w-full bg-slate-100 rounded-full dark:bg-slate-800 overflow-hidden">
+                                        <div className="h-full bg-blue-500 rounded-full" style={{ width: '100%' }}></div>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="font-medium">Custo Estimado (Compras)</span>
+                                        <span className="font-bold text-slate-600 dark:text-slate-400">${totalEstimated.toFixed(2)}</span>
+                                    </div>
+                                    <div className="h-3 w-full bg-slate-100 rounded-full dark:bg-slate-800 overflow-hidden">
+                                        <div
+                                            className="h-full bg-yellow-500 rounded-full transition-all duration-500"
+                                            style={{ width: `${totalBudget > 0 ? Math.min((totalEstimated / totalBudget) * 100, 100) : 0}%` }}
+                                        ></div>
+                                    </div>
+                                    <p className="text-xs text-slate-500">
+                                        {totalBudget > 0 ? `${((totalEstimated / totalBudget) * 100).toFixed(1)}% do orçamento` : 'Defina um orçamento para ver a porcentagem.'}
+                                    </p>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="font-medium">Gasto Real (Confirmado)</span>
+                                        <span className={cn("font-bold", totalActual > totalBudget ? "text-red-500" : "text-green-600")}>
+                                            ${totalActual.toFixed(2)}
+                                        </span>
+                                    </div>
+                                    <div className="h-3 w-full bg-slate-100 rounded-full dark:bg-slate-800 overflow-hidden">
+                                        <div
+                                            className={cn("h-full rounded-full transition-all duration-500", totalActual > totalBudget ? "bg-red-500" : "bg-green-500")}
+                                            style={{ width: `${totalBudget > 0 ? Math.min((totalActual / totalBudget) * 100, 100) : 0}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Definir Orçamentos</CardTitle>
+                                <CardDescription>Adicione categorias de orçamento macro (Ex: Passagens, Moradia, Alimentação).</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <form onSubmit={submitBudget} className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Categoria</Label>
+                                            <Input
+                                                value={budgetData.category}
+                                                onChange={e => setBudgetData('category', e.target.value)}
+                                                placeholder="Ex: Moradia"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Valor Planejado ($)</Label>
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                value={budgetData.planned_amount}
+                                                onChange={e => setBudgetData('planned_amount', e.target.value)}
+                                                placeholder="0.00"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <Button type="submit" disabled={budgetProcessing} className="w-full">
+                                        Adicionar Orçamento
+                                    </Button>
+                                </form>
+
+                                <div className="mt-6 space-y-2">
+                                    <h4 className="text-sm font-medium text-slate-500 mb-3">Orçamentos Definidos</h4>
+                                    {(exchange.budgets || []).length === 0 && (
+                                        <p className="text-sm text-slate-400 italic text-center">Nenhum orçamento definido.</p>
+                                    )}
+                                    <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2">
+                                        {(exchange.budgets || []).map((budget: any) => (
+                                            <div key={budget.id} className="flex items-center justify-between p-3 border rounded bg-slate-50 dark:bg-slate-900/50 dark:border-slate-800">
+                                                <div>
+                                                    <p className="font-medium text-sm">{budget.category}</p>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="font-bold text-sm">${Number(budget.planned_amount).toFixed(2)}</span>
+                                                    <button onClick={() => deleteBudget(budget.id)} className="text-slate-400 hover:text-red-500">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

@@ -39,6 +39,18 @@ Route::middleware('auth')->group(function () {
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
 
+    Route::post('/exchanges/{exchange}/budgets', [\App\Http\Controllers\Web\BudgetController::class, 'store'])->name('budgets.store');
+    Route::put('/budgets/{budget}', [\App\Http\Controllers\Web\BudgetController::class, 'update'])->name('budgets.update');
+    Route::delete('/budgets/{budget}', [\App\Http\Controllers\Web\BudgetController::class, 'destroy'])->name('budgets.destroy');
+
+    Route::post('/exchanges/{exchange}/housings', [\App\Http\Controllers\Web\HousingController::class, 'store'])->name('housings.store');
+    Route::put('/housings/{housing}', [\App\Http\Controllers\Web\HousingController::class, 'update'])->name('housings.update');
+    Route::delete('/housings/{housing}', [\App\Http\Controllers\Web\HousingController::class, 'destroy'])->name('housings.destroy');
+
+    Route::post('/exchanges/{exchange}/events', [\App\Http\Controllers\Web\EventController::class, 'store'])->name('events.store');
+    Route::put('/events/{event}', [\App\Http\Controllers\Web\EventController::class, 'update'])->name('events.update');
+    Route::delete('/events/{event}', [\App\Http\Controllers\Web\EventController::class, 'destroy'])->name('events.destroy');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
