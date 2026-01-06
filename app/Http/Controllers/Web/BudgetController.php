@@ -23,6 +23,8 @@ class BudgetController extends Controller
             'period' => 'nullable|string'
         ]);
 
+        $data['spent_amount'] = $data['spent_amount'] ?? 0;
+
         $exchange->budgets()->create($data);
 
         return back()->with('success', 'Orçamento adicionado!');

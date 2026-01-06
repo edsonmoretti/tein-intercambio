@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, CheckCircle, Circle, MapPin, Calendar, CreditCard, FileText, ShoppingBag, PiggyBank, Upload, Eye } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, Circle, MapPin, Calendar, CreditCard, FileText, ShoppingBag, PiggyBank, Upload, Eye, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -158,6 +158,27 @@ export default function Show({ exchange }: { exchange: any }) {
         return task.category === checklistFilter;
     });
 
+    // Housing Form
+    const { data: housingData, setData: setHousingData, post: postHousing, reset: resetHousing, processing: housingProcessing } = useForm({
+        type: 'Casa de Família',
+        address: '',
+        contact_info: '',
+        start_date: '',
+        end_date: '',
+        cost: ''
+    });
+
+    const submitHousing = (e: React.FormEvent) => {
+        e.preventDefault();
+        postHousing(`/exchanges/${exchange.id}/housings`, {
+            onSuccess: () => resetHousing()
+        });
+    };
+
+    const deleteHousing = (id: number) => {
+        if (confirm('Remover acomodação?')) router.delete(`/housings/${id}`, { preserveScroll: true });
+    };
+
     // Budget Calculations
     const totalBudget = exchange.budgets?.reduce((acc: number, curr: any) => acc + Number(curr.planned_amount), 0) || 0;
     const totalEstimated = exchange.purchases?.reduce((acc: number, curr: any) => acc + Number(curr.estimated_cost || 0), 0) || 0;
@@ -192,6 +213,7 @@ export default function Show({ exchange }: { exchange: any }) {
                 <TabsList>
                     <TabsTrigger value="details">Resumo</TabsTrigger>
                     <TabsTrigger value="budget">Financeiro</TabsTrigger>
+                    <TabsTrigger value="housing">Moradia</TabsTrigger>
                     <TabsTrigger value="checklist">Checklist</TabsTrigger>
                     <TabsTrigger value="purchases">Compras</TabsTrigger>
                     <TabsTrigger value="documents">Documentos</TabsTrigger>
@@ -352,6 +374,119 @@ export default function Show({ exchange }: { exchange: any }) {
                                 </div>
                             </CardContent>
                         </Card>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="housing" className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Adicionar Acomodação</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <form onSubmit={submitHousing} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+                                <div className="space-y-2">
+                                    <Label>Tipo</Label>
+                                    <Select value={housingData.type} onValueChange={val => setHousingData('type', val)}>
+                                        <SelectTrigger> <SelectValue /> </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Casa de Família">Casa de Família (Homestay)</SelectItem>
+                                            <SelectItem value="Residência Estudantil">Residência Estudantil</SelectItem>
+                                            <SelectItem value="Apartamento">Apartamento</SelectItem>
+                                            <SelectItem value="Hotel/Hostel">Hotel/Hostel</SelectItem>
+                                            <SelectItem value="Outro">Outro</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Endereço</Label>
+                                    <Input
+                                        value={housingData.address}
+                                        onChange={e => setHousingData('address', e.target.value)}
+                                        placeholder="Rua, Número, Bairro..."
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Contato (Opcional)</Label>
+                                    <Input
+                                        value={housingData.contact_info}
+                                        onChange={e => setHousingData('contact_info', e.target.value)}
+                                        placeholder="Nome, Telefone ou Email"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Check-in</Label>
+                                    <Input
+                                        type="date"
+                                        value={housingData.start_date}
+                                        onChange={e => setHousingData('start_date', e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Check-out</Label>
+                                    <Input
+                                        type="date"
+                                        value={housingData.end_date}
+                                        onChange={e => setHousingData('end_date', e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Custo ($)</Label>
+                                    <Input
+                                        type="number"
+                                        step="0.01"
+                                        value={housingData.cost}
+                                        onChange={e => setHousingData('cost', e.target.value)}
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                                <div className="lg:col-span-3">
+                                    <Button type="submit" disabled={housingProcessing}>
+                                        Adicionar Acomodação
+                                    </Button>
+                                </div>
+                            </form>
+                        </CardContent>
+                    </Card>
+
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {(exchange.housings || []).map((housing: any) => (
+                            <Card key={housing.id} className="relative overflow-hidden">
+                                <CardHeader className="pb-2">
+                                    <div className="flex justify-between items-start">
+                                        <CardTitle className="text-base font-medium flex items-center gap-2">
+                                            <Home className="h-4 w-4 text-slate-500" />
+                                            {housing.type}
+                                        </CardTitle>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-red-500 -mr-2 -mt-2" onClick={() => deleteHousing(housing.id)}>
+                                            <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                    </div>
+                                    <CardDescription>{housing.address}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="text-sm space-y-2">
+                                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                                        <Calendar className="h-3 w-3" />
+                                        <span>
+                                            {new Date(housing.start_date).toLocaleDateString()} - {new Date(housing.end_date).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                    {housing.cost && (
+                                        <div className="flex items-center gap-2 font-medium text-slate-900 dark:text-slate-100">
+                                            <CreditCard className="h-3 w-3 text-slate-500" />
+                                            <span>${Number(housing.cost).toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    {housing.contact_info && (
+                                        <div className="text-xs text-slate-500 border-t pt-2 mt-2">
+                                            <strong>Contato:</strong> {housing.contact_info}
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        ))}
                     </div>
                 </TabsContent>
 
