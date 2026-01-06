@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\TripController;
@@ -9,18 +10,17 @@ use App\Http\Controllers\Web\PurchaseController;
 use App\Http\Controllers\Web\DocumentController;
 use App\Http\Controllers\Web\ProfileController;
 
+Route::get('/', function () {
+    return redirect()->route('login');
+})->middleware('guest');
+
 Route::middleware('guest')->group(function () {
-    Route::get('/', function () {
-        return redirect()->route('login');
-    });
     Route::get('/login', [AuthController::class, 'create'])->name('login');
     Route::post('/login', [AuthController::class, 'store']);
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [TripController::class, 'index'])->name('dashboard');
 
     Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
 

@@ -38,12 +38,12 @@ class TripController extends Controller
             'place' => 'nullable|string',
         ]);
 
-        Trip::create(array_merge(
+        $trip = Trip::create(array_merge(
             $request->only(['country', 'city', 'type', 'start_date', 'end_date', 'place']),
             ['user_id' => Auth::id(), 'status' => 'planning']
         ));
 
-        return redirect()->route('trips.index')->with('success', 'Viagem criada com sucesso!');
+        return redirect()->route('trips.show', $trip)->with('success', 'Viagem criada com sucesso!');
     }
 
     public function show(Trip $trip)

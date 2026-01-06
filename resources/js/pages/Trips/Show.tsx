@@ -313,15 +313,17 @@ export default function Show({ trip }: { trip: any }) {
             </div>
 
             <Tabs value={activeTab} className="space-y-4" onValueChange={setActiveTab}>
-                <TabsList>
-                    <TabsTrigger value="details">Resumo</TabsTrigger>
-                    <TabsTrigger value="members">Participantes</TabsTrigger>
-                    <TabsTrigger value="budget">Financeiro</TabsTrigger>
-                    <TabsTrigger value="housing">Moradia</TabsTrigger>
-                    <TabsTrigger value="checklist">Checklist</TabsTrigger>
-                    <TabsTrigger value="purchases">Compras</TabsTrigger>
-                    <TabsTrigger value="documents">Documentos</TabsTrigger>
-                </TabsList>
+                <div className="overflow-x-auto pb-2">
+                    <TabsList className="inline-flex">
+                        <TabsTrigger value="details">Resumo</TabsTrigger>
+                        <TabsTrigger value="members">Participantes</TabsTrigger>
+                        <TabsTrigger value="budget">Financeiro</TabsTrigger>
+                        <TabsTrigger value="housing">Moradia</TabsTrigger>
+                        <TabsTrigger value="checklist">Checklist</TabsTrigger>
+                        <TabsTrigger value="purchases">Compras</TabsTrigger>
+                        <TabsTrigger value="documents">Documentos</TabsTrigger>
+                    </TabsList>
+                </div>
 
                 <TabsContent value="details" className="space-y-4">
                     {/* ... (existing details content) ... */}
