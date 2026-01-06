@@ -20,6 +20,7 @@ class TaskController extends Controller
             'description' => 'required|string',
             'category' => 'required|string',
             'due_date' => 'nullable|date',
+            'exchange_member_id' => 'nullable|exists:exchange_members,id'
         ]);
 
         $exchange->tasks()->create($request->all());

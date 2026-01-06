@@ -21,6 +21,7 @@ class PurchaseController extends Controller
             'category' => 'required|string',
             'estimated_cost' => 'required|numeric',
             'type' => 'required|in:before,after',
+            'exchange_member_id' => 'nullable|exists:exchange_members,id'
         ]);
 
         $exchange->purchases()->create($data);

@@ -21,16 +21,53 @@ class DocumentController extends Controller
             'is_mandatory' => 'boolean',
             'expiration_date' => 'nullable|date',
             'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'exchange_member_id' => 'nullable' // Can be 'all' or specific ID or null
         ]);
 
+        $status = 'pending';
+        $path = null;
         if ($request->hasFile('file')) {
-            $data['file_path'] = $request->file('file')->store('documents', 'public');
-            $data['status'] = 'sent';
+            $path = $request->file('file')->store('documents', 'public');
+            $status = 'sent';
         }
 
-        $exchange->documents()->create($data);
+        $membersToAssign = [];
+        if ($data['exchange_member_id'] === 'all') {
+            $membersToAssign = $exchange->members()->pluck('id')->toArray();
+        } elseif (!empty($data['exchange_member_id'])) {
+            $membersToAssign = [$data['exchange_member_id']];
+        }
 
-        return back()->with('success', 'Documento adicionado!');
+        // If no member selected (or empty list), just create one generic/unassigned
+        if (empty($membersToAssign)) {
+            $exchange->documents()->create([
+                'type' => $data['type'],
+                'is_mandatory' => $data['is_mandatory'] ?? false,
+                'expiration_date' => $data['expiration_date'] ?? null,
+                'file_path' => $path,
+                'status' => $status,
+                'exchange_member_id' => null
+            ]);
+        } else {
+            foreach ($membersToAssign as $memberId) {
+                // If uploading a file for MULTIPLE people, do we copy it?
+                // For now, let's assume if it's 'all' we are probably just defining the requirement (no file typically),
+                // OR if there is a file, we might link the same file path.
+                // However, usually 'all' is for "Passport" requirement. User won't upload 3 passports at once.
+                // But just in case, we use the same path if provided.
+
+                $exchange->documents()->create([
+                    'type' => $data['type'],
+                    'is_mandatory' => $data['is_mandatory'] ?? false,
+                    'expiration_date' => $data['expiration_date'] ?? null,
+                    'file_path' => $path,
+                    'status' => $status,
+                    'exchange_member_id' => $memberId
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Documento(s) adicionado(s)!');
     }
 
     public function update(Request $request, Document $document)

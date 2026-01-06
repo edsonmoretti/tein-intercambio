@@ -11,6 +11,7 @@ class Task extends Model
 
     protected $fillable = [
         'exchange_id',
+        'exchange_member_id',
         'category',
         'description',
         'due_date',
@@ -24,5 +25,10 @@ class Task extends Model
     public function exchange()
     {
         return $this->belongsTo(Exchange::class);
+    }
+
+    public function member()
+    {
+        return $this->belongsTo(ExchangeMember::class, 'exchange_member_id');
     }
 }

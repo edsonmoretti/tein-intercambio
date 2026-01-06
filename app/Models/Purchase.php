@@ -11,6 +11,7 @@ class Purchase extends Model
 
     protected $fillable = [
         'exchange_id',
+        'exchange_member_id',
         'type',
         'item',
         'category',
@@ -27,5 +28,10 @@ class Purchase extends Model
     public function exchange()
     {
         return $this->belongsTo(Exchange::class);
+    }
+
+    public function member()
+    {
+        return $this->belongsTo(ExchangeMember::class, 'exchange_member_id');
     }
 }

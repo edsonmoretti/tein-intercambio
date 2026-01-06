@@ -51,6 +51,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/events/{event}', [\App\Http\Controllers\Web\EventController::class, 'update'])->name('events.update');
     Route::delete('/events/{event}', [\App\Http\Controllers\Web\EventController::class, 'destroy'])->name('events.destroy');
 
+    Route::post('/exchanges/{exchange}/members', [\App\Http\Controllers\Web\ExchangeMemberController::class, 'store'])->name('exchange-members.store');
+    Route::delete('/exchange-members/{member}', [\App\Http\Controllers\Web\ExchangeMemberController::class, 'destroy'])->name('exchange-members.destroy');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

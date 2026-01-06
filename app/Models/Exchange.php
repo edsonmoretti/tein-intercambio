@@ -55,4 +55,8 @@ class Exchange extends Model
     {
         return $this->hasMany(Event::class);
     }
+    public function members()
+    {
+        return $this->hasMany(ExchangeMember::class);
+    }
 }

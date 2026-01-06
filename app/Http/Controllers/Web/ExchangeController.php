@@ -52,7 +52,7 @@ class ExchangeController extends Controller
             abort(403);
         }
 
-        $exchange->load('documents', 'tasks', 'budgets', 'events', 'purchases', 'housings');
+        $exchange->load('documents.member', 'tasks.member', 'budgets', 'events', 'purchases.member', 'housings', 'members');
 
         return Inertia::render('Exchanges/Show', [
             'exchange' => $exchange

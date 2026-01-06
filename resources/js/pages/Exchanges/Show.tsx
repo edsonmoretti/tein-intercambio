@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, CheckCircle, Circle, MapPin, Calendar, CreditCard, FileText, ShoppingBag, PiggyBank, Upload, Eye, Home } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, Circle, MapPin, Calendar, CreditCard, FileText, ShoppingBag, PiggyBank, Upload, Eye, Home, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -33,7 +33,8 @@ export default function Show({ exchange }: { exchange: any }) {
     const { data: taskData, setData: setTaskData, post: postTask, reset: resetTask, processing: taskProcessing } = useForm({
         description: '',
         category: 'before_go',
-        due_date: ''
+        due_date: '',
+        exchange_member_id: ''
     });
 
     const submitTask = (e: React.FormEvent) => {
@@ -59,7 +60,8 @@ export default function Show({ exchange }: { exchange: any }) {
         estimated_cost: '',
         display_cost: '',
         category: 'clothing',
-        type: 'before'
+        type: 'before',
+        exchange_member_id: ''
     });
 
     const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,7 +95,9 @@ export default function Show({ exchange }: { exchange: any }) {
     const { data: documentData, setData: setDocumentData, post: postDocument, reset: resetDocument, processing: documentProcessing } = useForm({
         type: '',
         expiration_date: '',
-        is_mandatory: false
+        is_mandatory: false,
+        exchange_member_id: 'all',
+        file: null as File | null
     });
 
     const submitDocument = (e: React.FormEvent) => {
@@ -179,6 +183,23 @@ export default function Show({ exchange }: { exchange: any }) {
         if (confirm('Remover acomodação?')) router.delete(`/housings/${id}`, { preserveScroll: true });
     };
 
+    // Member Form
+    const { data: memberData, setData: setMemberData, post: postMember, reset: resetMember, processing: memberProcessing } = useForm({
+        name: '',
+        user_id: '' // Optional linkage to user account
+    });
+
+    const submitMember = (e: React.FormEvent) => {
+        e.preventDefault();
+        postMember(`/exchanges/${exchange.id}/members`, {
+            onSuccess: () => resetMember()
+        });
+    };
+
+    const deleteMember = (id: number) => {
+        if (confirm('Remover participante?')) router.delete(`/exchange-members/${id}`, { preserveScroll: true });
+    };
+
     // Budget Calculations
     const totalBudget = exchange.budgets?.reduce((acc: number, curr: any) => acc + Number(curr.planned_amount), 0) || 0;
     const totalEstimated = exchange.purchases?.reduce((acc: number, curr: any) => acc + Number(curr.estimated_cost || 0), 0) || 0;
@@ -198,7 +219,17 @@ export default function Show({ exchange }: { exchange: any }) {
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">{exchange.city}, {exchange.country}</h1>
                         <p className="text-slate-500 flex items-center gap-2 mt-1">
-                            <SchoolIcon className="h-4 w-4" /> {exchange.institution || 'Instituição não definida'}
+                            <SchoolIcon className="h-4 w-4" />
+                            {exchange.institution ? (
+                                <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${exchange.institution}, ${exchange.city}, ${exchange.country}`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hover:underline hover:text-blue-600 transition-colors"
+                                >
+                                    {exchange.institution}
+                                </a>
+                            ) : 'Instituição não definida'}
                         </p>
                     </div>
                     <div className="flex gap-2">
@@ -212,6 +243,7 @@ export default function Show({ exchange }: { exchange: any }) {
             <Tabs value={activeTab} className="space-y-4" onValueChange={setActiveTab}>
                 <TabsList>
                     <TabsTrigger value="details">Resumo</TabsTrigger>
+                    <TabsTrigger value="members">Participantes</TabsTrigger>
                     <TabsTrigger value="budget">Financeiro</TabsTrigger>
                     <TabsTrigger value="housing">Moradia</TabsTrigger>
                     <TabsTrigger value="checklist">Checklist</TabsTrigger>
@@ -220,6 +252,7 @@ export default function Show({ exchange }: { exchange: any }) {
                 </TabsList>
 
                 <TabsContent value="details" className="space-y-4">
+                    {/* ... (existing details content) ... */}
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -265,6 +298,50 @@ export default function Show({ exchange }: { exchange: any }) {
                                 </div>
                             </CardContent>
                         </Card>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="members" className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Adicionar Participante</CardTitle>
+                            <CardDescription>Cadastre quem participará deste intercâmbio (você, cônjuge, filho(a), etc).</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <form onSubmit={submitMember} className="flex gap-4 items-end">
+                                <div className="flex-1 space-y-2">
+                                    <Label>Nome do Participante</Label>
+                                    <Input
+                                        value={memberData.name}
+                                        onChange={e => setMemberData('name', e.target.value)}
+                                        placeholder="Ex: João, Maria, Eu..."
+                                        required
+                                    />
+                                </div>
+                                <Button type="submit" disabled={memberProcessing}>
+                                    Adicionar
+                                </Button>
+                            </form>
+                        </CardContent>
+                    </Card>
+
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {(exchange.members || []).map((member: any) => (
+                            <Card key={member.id} className="relative">
+                                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                                    <CardTitle className="text-base font-medium flex items-center gap-2">
+                                        <Users className="h-4 w-4 text-slate-500" />
+                                        {member.name}
+                                    </CardTitle>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-red-500" onClick={() => deleteMember(member.id)}>
+                                        <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-xs text-slate-500">Adicionado em {new Date(member.created_at).toLocaleDateString()}</p>
+                                </CardContent>
+                            </Card>
+                        ))}
                     </div>
                 </TabsContent>
 
@@ -507,6 +584,17 @@ export default function Show({ exchange }: { exchange: any }) {
                                     />
                                 </div>
                                 <div className="w-full md:w-[200px] space-y-2">
+                                    <Label>Atribuir a (Opcional)</Label>
+                                    <Select value={taskData.exchange_member_id} onValueChange={val => setTaskData('exchange_member_id', val)}>
+                                        <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
+                                        <SelectContent>
+                                            {(exchange.members || []).map((m: any) => (
+                                                <SelectItem key={m.id} value={m.id.toString()}>{m.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="w-full md:w-[200px] space-y-2">
                                     <Label>Categoria</Label>
                                     <Select value={taskData.category} onValueChange={val => setTaskData('category', val)}>
                                         <SelectTrigger>
@@ -604,10 +692,15 @@ export default function Show({ exchange }: { exchange: any }) {
                                         )}>
                                             {task.description}
                                         </p>
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2 items-center flex-wrap">
                                             <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded dark:bg-slate-800">
                                                 {CATEGORIES.find(c => c.id === task.category)?.label || task.category}
                                             </span>
+                                            {task.member && (
+                                                <span className="text-[10px] flex items-center gap-1 text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded dark:bg-blue-900/20 dark:text-blue-400">
+                                                    <Users className="h-3 w-3" /> {task.member.name}
+                                                </span>
+                                            )}
                                             {task.due_date && (
                                                 <span className="text-[10px] text-slate-400 flex items-center gap-1">
                                                     <Calendar className="h-3 w-3" /> {new Date(task.due_date).toLocaleDateString()}
@@ -670,6 +763,17 @@ export default function Show({ exchange }: { exchange: any }) {
                                     </Select>
                                     {purchaseErrors.category && <span className="text-xs text-red-500">{purchaseErrors.category}</span>}
                                 </div>
+                                <div className="space-y-2 md:col-span-1">
+                                    <Label>Atribuir a (Opcional)</Label>
+                                    <Select value={purchaseData.exchange_member_id} onValueChange={val => setPurchaseData('exchange_member_id', val)}>
+                                        <SelectTrigger> <SelectValue placeholder="Todos" /> </SelectTrigger>
+                                        <SelectContent>
+                                            {(exchange.members || []).map((m: any) => (
+                                                <SelectItem key={m.id} value={m.id.toString()}>{m.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                                 <div className="md:col-span-1 pt-8">
                                     <Button type="submit" disabled={purchaseProcessing} className="w-full">
                                         Adicionar
@@ -685,6 +789,7 @@ export default function Show({ exchange }: { exchange: any }) {
                                 <tr>
                                     <th className="px-4 py-3">Item</th>
                                     <th className="px-4 py-3">Categoria</th>
+                                    <th className="px-4 py-3">Quem</th>
                                     <th className="px-4 py-3">Estimado</th>
                                     <th className="px-4 py-3">Real</th>
                                     <th className="px-4 py-3 text-right">Ações</th>
@@ -718,6 +823,9 @@ export default function Show({ exchange }: { exchange: any }) {
                                         <td className="px-4 py-3">
                                             {PURCHASE_CATEGORIES.find(c => c.id === purchase.category)?.label || purchase.category}
                                         </td>
+                                        <td className="px-4 py-3 text-slate-500">
+                                            {purchase.member ? purchase.member.name : '-'}
+                                        </td>
                                         <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
                                             ${Number(purchase.estimated_cost).toFixed(2)}
                                         </td>
@@ -739,7 +847,7 @@ export default function Show({ exchange }: { exchange: any }) {
                                 ))}
                                 {(!exchange.purchases || exchange.purchases.length === 0) && (
                                     <tr>
-                                        <td colSpan={5} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan={6} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
                                             Nenhuma compra planejada ainda.
                                         </td>
                                     </tr>
@@ -772,6 +880,18 @@ export default function Show({ exchange }: { exchange: any }) {
                                         value={documentData.expiration_date}
                                         onChange={e => setDocumentData('expiration_date', e.target.value)}
                                     />
+                                </div>
+                                <div className="w-full md:w-[200px] space-y-2">
+                                    <Label>Atribuir a</Label>
+                                    <Select value={documentData.exchange_member_id} onValueChange={val => setDocumentData('exchange_member_id', val)}>
+                                        <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">Todos os Participantes</SelectItem>
+                                            {(exchange.members || []).map((m: any) => (
+                                                <SelectItem key={m.id} value={m.id.toString()}>{m.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <div className="w-full md:w-[200px] space-y-2">
                                     <Label>Arquivo (Opcional)</Label>
@@ -817,6 +937,11 @@ export default function Show({ exchange }: { exchange: any }) {
                                             </Button>
                                         </div>
                                     </div>
+                                    {doc.member && (
+                                        <CardDescription className="flex items-center gap-1 text-xs">
+                                            <Users className="h-3 w-3" /> {doc.member.name}
+                                        </CardDescription>
+                                    )}
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-2 text-sm">
