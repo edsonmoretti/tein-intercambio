@@ -6,8 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-import { Plus, Trash2, CheckCircle, Circle, MapPin, Calendar, CreditCard, FileText } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, Circle, MapPin, Calendar, CreditCard, FileText, ShoppingBag, PiggyBank } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -17,11 +16,18 @@ const CATEGORIES = [
     { id: 'during', label: 'Durante' }
 ];
 
+const PURCHASE_CATEGORIES = [
+    { id: 'clothing', label: 'Roupas' },
+    { id: 'document', label: 'Documentos' },
+    { id: 'tech', label: 'Tecnologia' },
+    { id: 'home', label: 'Casa' },
+    { id: 'other', label: 'Outros' }
+];
+
 export default function Show({ exchange }: { exchange: any }) {
     const [activeTab, setActiveTab] = useState("details");
     // Checklist Filtering
     const [checklistFilter, setChecklistFilter] = useState<string>('all');
-
 
     // Task Form
     const { data: taskData, setData: setTaskData, post: postTask, reset: resetTask, processing: taskProcessing } = useForm({
@@ -47,7 +53,6 @@ export default function Show({ exchange }: { exchange: any }) {
         if (confirm('Delete task?')) router.delete(`/tasks/${id}`, { preserveScroll: true });
     };
 
-    // Purchase Form
     // Purchase Form
     const { data: purchaseData, setData: setPurchaseData, post: postPurchase, reset: resetPurchase, processing: purchaseProcessing, errors: purchaseErrors } = useForm({
         item: '',
@@ -84,7 +89,31 @@ export default function Show({ exchange }: { exchange: any }) {
         if (confirm('Delete purchase?')) router.delete(`/purchases/${id}`, { preserveScroll: true });
     };
 
-    // Filtered Tasks
+    const togglePurchase = (purchase: any) => {
+        if (purchase.status === 'completed') {
+            if (confirm('Deseja marcar como não comprado? O valor pago será removido.')) {
+                router.put(`/purchases/${purchase.id}`, {
+                    status: 'pending',
+                    actual_cost: null
+                }, { preserveScroll: true });
+            }
+        } else {
+            const cost = prompt('Qual foi o valor real pago ($)?', purchase.estimated_cost);
+            if (cost !== null) {
+                const cleanCost = cost.replace(/,/g, '.');
+                if (isNaN(Number(cleanCost)) || cleanCost.trim() === '') {
+                    alert('Por favor, insira um valor válido.');
+                    return;
+                }
+
+                router.put(`/purchases/${purchase.id}`, {
+                    status: 'completed',
+                    actual_cost: cleanCost
+                }, { preserveScroll: true });
+            }
+        }
+    };
+
     // Filtered Tasks
     const tasks = exchange.tasks || []; // Ensure tasks is array
     const filteredTasks = tasks.filter((task: any) => {
@@ -95,9 +124,6 @@ export default function Show({ exchange }: { exchange: any }) {
     return (
         <AuthenticatedLayout>
             <Head title={`${exchange.city}, ${exchange.country}`} />
-
-            {/* DEBUG: Validate data arrival */}
-            {/* <pre className="text-xs bg-gray-100 p-2 overflow-auto max-h-20">{JSON.stringify(exchange, null, 2)}</pre> */}
 
             <div className="mb-6">
                 <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
@@ -149,6 +175,28 @@ export default function Show({ exchange }: { exchange: any }) {
                             <CardContent>
                                 <div className="text-2xl font-bold text-slate-900 dark:text-white">
                                     ${Number(exchange.purchases?.reduce((acc: number, curr: any) => acc + Number(curr.estimated_cost || 0), 0) || 0).toFixed(2)}
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Compras Realizadas</CardTitle>
+                                <ShoppingBag className="h-4 w-4 text-slate-500" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">
+                                    {exchange.purchases?.filter((p: any) => p.status === 'completed').length} / {exchange.purchases?.length || 0}
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Gasto Real</CardTitle>
+                                <PiggyBank className="h-4 w-4 text-slate-500" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                                    ${Number(exchange.purchases?.reduce((acc: number, curr: any) => acc + Number(curr.actual_cost || 0), 0) || 0).toFixed(2)}
                                 </div>
                             </CardContent>
                         </Card>
@@ -328,11 +376,9 @@ export default function Show({ exchange }: { exchange: any }) {
                                     <Select value={purchaseData.category} onValueChange={val => setPurchaseData('category', val)}>
                                         <SelectTrigger> <SelectValue /> </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="clothing">Roupas</SelectItem>
-                                            <SelectItem value="document">Documentos</SelectItem>
-                                            <SelectItem value="tech">Tecnologia</SelectItem>
-                                            <SelectItem value="home">Casa</SelectItem>
-                                            <SelectItem value="other">Outros</SelectItem>
+                                            {PURCHASE_CATEGORIES.map(cat => (
+                                                <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                     {purchaseErrors.category && <span className="text-xs text-red-500">{purchaseErrors.category}</span>}
@@ -359,12 +405,43 @@ export default function Show({ exchange }: { exchange: any }) {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {(exchange.purchases || []).map((purchase: any) => (
-                                    <tr key={purchase.id}>
-                                        <td className="px-4 py-3 font-medium">{purchase.item}</td>
-                                        <td className="px-4 py-3 capitalize">{purchase.category}</td>
-                                        <td className="px-4 py-3">${Number(purchase.estimated_cost).toFixed(2)}</td>
-                                        <td className="px-4 py-3 text-slate-500">
-                                            {purchase.actual_cost ? `$${Number(purchase.actual_cost).toFixed(2)}` : '-'}
+                                    <tr key={purchase.id} className="text-slate-900 dark:text-slate-100">
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center gap-3">
+                                                <button
+                                                    onClick={() => togglePurchase(purchase)}
+                                                    className={cn(
+                                                        "flex-shrink-0 transition-all duration-200",
+                                                        purchase.status === 'completed'
+                                                            ? "text-green-600 dark:text-green-500"
+                                                            : "text-slate-300 hover:text-slate-400 dark:text-slate-600"
+                                                    )}
+                                                    title={purchase.status === 'completed' ? "Marcar como pendente" : "Marcar como comprado"}
+                                                >
+                                                    {purchase.status === 'completed'
+                                                        ? <CheckCircle className="h-5 w-5" />
+                                                        : <Circle className="h-5 w-5" />
+                                                    }
+                                                </button>
+                                                <div className={cn("font-medium", purchase.status === 'completed' && "line-through opacity-50")}>
+                                                    {purchase.item}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {PURCHASE_CATEGORIES.find(c => c.id === purchase.category)?.label || purchase.category}
+                                        </td>
+                                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
+                                            ${Number(purchase.estimated_cost).toFixed(2)}
+                                        </td>
+                                        <td className="px-4 py-3 font-medium">
+                                            {purchase.actual_cost ? (
+                                                <span className={cn(
+                                                    Number(purchase.actual_cost) > Number(purchase.estimated_cost) ? "text-red-500" : "text-green-600 dark:text-green-400"
+                                                )}>
+                                                    ${Number(purchase.actual_cost).toFixed(2)}
+                                                </span>
+                                            ) : '-'}
                                         </td>
                                         <td className="px-4 py-3 text-right">
                                             <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500" onClick={() => deletePurchase(purchase.id)}>
@@ -375,7 +452,7 @@ export default function Show({ exchange }: { exchange: any }) {
                                 ))}
                                 {(!exchange.purchases || exchange.purchases.length === 0) && (
                                     <tr>
-                                        <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                                        <td colSpan={5} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
                                             Nenhuma compra planejada ainda.
                                         </td>
                                     </tr>
