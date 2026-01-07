@@ -65,7 +65,7 @@ export default function Form({ trip }: { trip?: any }) {
                                         id="country"
                                         value={data.country}
                                         onChange={(e) => setData('country', e.target.value)}
-                                        placeholder="Ex: Canadá"
+                                        placeholder="Ex: Irlanda"
                                         required
                                     />
                                     {errors.country && <p className="text-sm text-red-500">{errors.country}</p>}
@@ -76,7 +76,7 @@ export default function Form({ trip }: { trip?: any }) {
                                         id="city"
                                         value={data.city}
                                         onChange={(e) => setData('city', e.target.value)}
-                                        placeholder="Ex: Vancouver"
+                                        placeholder="Ex: Dublin"
                                         required
                                     />
                                     {errors.city && <p className="text-sm text-red-500">{errors.city}</p>}

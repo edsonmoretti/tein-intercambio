@@ -36,7 +36,7 @@ export default function Index({ trips }: { trips: Trip[] }) {
         <AuthenticatedLayout>
             <Head title="Viagens" />
 
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6 flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight dark:text-white">Viagens</h1>
                     <p className="text-muted-foreground dark:text-white">Gerencie seus planos de viagem.</p>
@@ -50,31 +50,55 @@ export default function Index({ trips }: { trips: Trip[] }) {
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {trips.length === 0 && (
-                    <div className="col-span-full text-center py-12 text-slate-500">
-                        Nenhuma viagem encontrada. Comece criando uma nova!
-                    </div>
+                    <div className="col-span-full py-12 text-center text-slate-500">Nenhuma viagem encontrada. Comece criando uma nova!</div>
                 )}
 
                 {trips.map((trip) => (
                     <Card key={trip.id} className="group relative overflow-hidden transition-all hover:shadow-md">
                         <CardHeader className="pb-3">
-                            <div className="flex justify-between items-start">
-                                <div className={cn("px-2.5 py-0.5 text-xs font-semibold rounded-full", statusColors[trip.status] || "bg-gray-100 text-gray-800")}>
+                            <div className="flex items-start justify-between">
+                                <div
+                                    className={cn(
+                                        'rounded-full px-2.5 py-0.5 text-xs font-semibold',
+                                        statusColors[trip.status] || 'bg-gray-100 text-gray-800',
+                                    )}
+                                >
                                     {trip.status.toUpperCase()}
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDelete(trip.id)}>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-red-500 opacity-0 transition-opacity group-hover:opacity-100"
+                                    onClick={() => handleDelete(trip.id)}
+                                >
                                     <Trash2 className="h-4 w-4" />
                                 </Button>
                             </div>
-                            <CardTitle className="text-xl mt-2 flex items-center gap-2">
-                                <span className="text-2xl mr-1">
-                                    {/* Simple flag mapping or just empty for now */}
-                                    🌍
-                                </span>
-                                {trip.city}, {trip.country}
+                            <CardTitle className="mt-2 flex items-center gap-2 text-xl">
+                                <span className="mr-1 text-2xl">🌍</span>
+                                <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${trip.place}, ${trip.city}, ${trip.country}`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hover:underline"
+                                >
+                                    {trip.city}, {trip.country}
+                                </a>
                             </CardTitle>
                             <CardDescription className="flex items-center gap-1">
-                                <School className="h-3 w-3" /> {trip.place || 'N/A'}
+                                <School className="h-3 w-3" />
+                                {trip.place ? (
+                                    <a
+                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${trip.place}, ${trip.city}, ${trip.country}`)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="hover:underline"
+                                    >
+                                        {trip.place}
+                                    </a>
+                                ) : (
+                                    'N/A'
+                                )}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
