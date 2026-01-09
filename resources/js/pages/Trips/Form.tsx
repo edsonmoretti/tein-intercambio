@@ -126,10 +126,15 @@ export default function Form({ trip }: { trip?: any }) {
                                             <SelectValue placeholder="Selecione o tipo" />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="tourism">Turismo/Passeio</SelectItem>
                                             <SelectItem value="study">Estudo</SelectItem>
-                                            <SelectItem value="language">Idioma</SelectItem>
-                                            {/*<SelectItem value="high_school">High School</SelectItem>*/}
-                                            {/*<SelectItem value="work_study">Work & Study</SelectItem>*/}
+                                            <SelectItem value="work">Trabalho</SelectItem>
+                                            <SelectItem value="work_study">Trabalho & Estudo</SelectItem>
+                                            <SelectItem value="business">Negócios</SelectItem>
+                                            <SelectItem value="volunteer">Voluntariado</SelectItem>
+                                            <SelectItem value="cultural_exchange">Intercâmbio Cultural</SelectItem>
+                                            <SelectItem value="adventure">Aventura</SelectItem>
+                                            <SelectItem value="family_visit">Visita Familiar</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     {errors.type && <p className="text-sm text-red-500">{errors.type}</p>}
