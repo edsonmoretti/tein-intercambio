@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
+import { Toaster, toast } from 'sonner';
 import {
     Plane,
     Menu,
@@ -16,9 +17,25 @@ interface User {
     email: string;
 }
 
+interface FlashProps {
+    success?: string;
+    error?: string;
+    message?: string;
+}
+
 export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
-    const user = usePage().props.auth.user as User;
+    const { auth, flash } = usePage().props as any;
+    const user = auth.user as User;
     const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        }
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+    }, [flash]);
 
     const navItems = [
         { name: 'Viagens', href: '/trips', icon: Plane },
@@ -27,6 +44,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+            <Toaster position="top-right" richColors />
             {/* Mobile Sidebar Backdrop */}
             {sidebarOpen && (
                 <div
