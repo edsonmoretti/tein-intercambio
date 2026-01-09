@@ -39,7 +39,7 @@ const PURCHASE_CATEGORIES = [
     { id: 'other', label: 'Outros' },
 ];
 
-export default function Show({ trip }: { trip: any }) {
+export default function Show({ trip, errors }: { trip: any; errors: any }) {
     const [activeTab, setActiveTab] = useState('details');
     // Checklist Filtering
     const [checklistFilter, setChecklistFilter] = useState<string>('all');
@@ -135,6 +135,7 @@ export default function Show({ trip }: { trip: any }) {
         post: postDocument,
         reset: resetDocument,
         processing: documentProcessing,
+        errors: documentErrors,
     } = useForm({
         type: '',
         expiration_date: '',
@@ -909,6 +910,11 @@ export default function Show({ trip }: { trip: any }) {
                                     Adicionar
                                 </Button>
                             </form>
+                            {documentErrors.file && (
+                                <div className="mt-2 rounded bg-red-100 p-2 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+                                    {documentErrors.file}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
@@ -930,7 +936,11 @@ export default function Show({ trip }: { trip: any }) {
                                         </CardTitle>
                                         <div className="-mt-2 -mr-2 flex gap-1">
                                             {doc.file_path && (
-                                                <a href={`/storage/${doc.file_path}`} target="_blank" rel="noopener noreferrer">
+                                                <a
+                                                    href={doc.file_path.startsWith('http') ? doc.file_path : `/storage/${doc.file_path}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
@@ -968,19 +978,19 @@ export default function Show({ trip }: { trip: any }) {
                                                     doc.status === 'valid'
                                                         ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                                                         : doc.status === 'expired'
-                                                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                                          : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+                                                            ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                            : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
                                                 )}
                                             >
                                                 {doc.status === 'pending'
                                                     ? 'Pendente'
                                                     : doc.status === 'valid'
-                                                      ? 'Válido'
-                                                      : doc.status === 'sent'
-                                                        ? 'Enviado'
-                                                        : doc.status === 'expired'
-                                                          ? 'Expirado'
-                                                          : doc.status}
+                                                        ? 'Válido'
+                                                        : doc.status === 'sent'
+                                                            ? 'Enviado'
+                                                            : doc.status === 'expired'
+                                                                ? 'Expirado'
+                                                                : doc.status}
                                             </span>
                                         </div>
                                         {doc.expiration_date && (

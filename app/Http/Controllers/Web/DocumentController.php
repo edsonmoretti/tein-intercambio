@@ -26,9 +26,46 @@ class DocumentController extends Controller
 
         $status = 'pending';
         $path = null;
+        $driveService = null;
+
+        // Initialize Google Drive Service if user has token
+        if (Auth::user()->google_token) {
+            $driveService = new \App\Services\GoogleDriveService(Auth::user()->google_token);
+        } else {
+            // Force Google Auth if token is missing
+            return back()->withErrors([
+                'file' => 'Você precisa conectar sua conta do Google para enviar documentos.
+            Por favor, faça logout e login novamente com o Google e conceda permissão para o Google Drive.'
+            ]);
+        }
+
         if ($request->hasFile('file')) {
-            $path = $request->file('file')->store('documents', 'public');
-            $status = 'sent';
+            try {
+                // 1. Find or Create "Intercambios" root folder (optional, or just use root)
+                // For now, let's just create a folder for the Trip
+                $tripFolderName = 'Intercambio - ' . $trip->destination . ' (' . $trip->start_date->format('Y') . ')';
+                $tripFolderId = $driveService->findFolderByName($tripFolderName);
+
+                if (!$tripFolderId) {
+                    $tripFolder = $driveService->createFolder($tripFolderName);
+                    $tripFolderId = $tripFolder->id;
+                }
+
+                // 2. Upload file
+                $uploadedFile = $driveService->uploadFile($request->file('file'), $tripFolderId);
+
+                // Use webViewLink as the path/url
+                $path = $uploadedFile->webViewLink;
+                $status = 'sent';
+
+            } catch (\Google\Service\Exception $e) {
+                if ($e->getCode() == 401) {
+                    return back()->withErrors(['file' => 'Sua sessão do Google expirou. Por favor, faça logout e login novamente.']);
+                }
+                return back()->withErrors(['file' => 'Erro do Google Drive: ' . $e->getMessage()]);
+            } catch (\Exception $e) {
+                return back()->withErrors(['file' => 'Erro ao enviar para o Google Drive: ' . $e->getMessage()]);
+            }
         }
 
         $membersToAssign = [];
@@ -50,11 +87,8 @@ class DocumentController extends Controller
             ]);
         } else {
             foreach ($membersToAssign as $memberId) {
-                // If uploading a file for MULTIPLE people, do we copy it?
-                // For now, let's assume if it's 'all' we are probably just defining the requirement (no file typically),
-                // OR if there is a file, we might link the same file path.
-                // However, usually 'all' is for "Passport" requirement. User won't upload 3 passports at once.
-                // But just in case, we use the same path if provided.
+                // If uploading a file for MULTIPLE people, loop through.
+                // Note: On Drive it will be the SAME link for everyone.
 
                 $trip->documents()->create([
                     'type' => $data['type'],
@@ -85,12 +119,32 @@ class DocumentController extends Controller
         ]);
 
         if ($request->hasFile('file')) {
-            // Delete old file if exists
-            if ($document->file_path) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($document->file_path);
+            // TODO: Handle delete old file from Drive? Risk of deleting user data.
+            // Ideally we just upload a new one and update the link.
+
+            if (Auth::user()->google_token) {
+                $driveService = new \App\Services\GoogleDriveService(Auth::user()->google_token);
+
+                try {
+                    $tripFolderName = 'Intercambio - ' . $document->trip->destination;
+                    $tripFolderId = $driveService->findFolderByName($tripFolderName);
+
+                    if (!$tripFolderId) {
+                        $tripFolder = $driveService->createFolder($tripFolderName);
+                        $tripFolderId = $tripFolder->id;
+                    }
+
+                    $uploadedFile = $driveService->uploadFile($request->file('file'), $tripFolderId);
+                    $data['file_path'] = $uploadedFile->webViewLink;
+                    $data['status'] = 'sent';
+
+                } catch (\Exception $e) {
+                    return back()->withErrors(['file' => 'Erro ao enviar para o Google Drive: ' . $e->getMessage()]);
+                }
+
+            } else {
+                return back()->withErrors(['file' => 'Você precisa conectar sua conta do Google para enviar documentos.']);
             }
-            $data['file_path'] = $request->file('file')->store('documents', 'public');
-            $data['status'] = 'sent'; // Auto update status on new file
         }
 
         $document->update($data);
@@ -104,7 +158,9 @@ class DocumentController extends Controller
             abort(403);
         }
 
-        if ($document->file_path) {
+        // We do NOT delete files from User's Google Drive automatically to prevent data loss accidents.
+        // Only delete if it's a local file.
+        if ($document->file_path && !str_starts_with($document->file_path, 'http')) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($document->file_path);
         }
 
