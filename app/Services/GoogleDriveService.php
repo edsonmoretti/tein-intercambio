@@ -79,4 +79,15 @@ class GoogleDriveService
 
         return $results->files[0]->id;
     }
+
+    public function deleteFile($fileId)
+    {
+        try {
+            $this->service->files->delete($fileId);
+            return true;
+        } catch (\Exception $e) {
+            // File might not exist or other error, log if needed, return false
+            return false;
+        }
+    }
 }

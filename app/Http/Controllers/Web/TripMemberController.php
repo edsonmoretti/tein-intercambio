@@ -40,6 +40,18 @@ class TripMemberController extends Controller
             abort(403);
         }
 
+        if ($member->tasks()->count() > 0) {
+            return back()->with('error', 'Não é possível remover: O participante possui tarefas (checklist) atribuídas.');
+        }
+
+        if ($member->purchases()->count() > 0) {
+            return back()->with('error', 'Não é possível remover: O participante possui compras atribuídas.');
+        }
+
+        if ($member->documents()->count() > 0) {
+            return back()->with('error', 'Não é possível remover: O participante possui documentos atribuídos.');
+        }
+
         $member->delete();
 
         return back()->with('success', 'Membro removido.');
