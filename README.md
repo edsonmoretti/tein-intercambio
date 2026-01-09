@@ -58,3 +58,29 @@ O projeto foi construído utilizando um conjunto de tecnologias modernas, focand
    ```
 
 Agora você pode acessar a aplicação em `http://localhost:8000`.
+
+## 🔐 Configuração da Autenticação Google
+
+Para habilitar o login com Google, você precisa obter as chaves do Google (Client ID e Secret) e configurá-las no arquivo `.env`.
+
+### Como obter as chaves do Google (Client ID e Secret)
+
+1. Acesse o [Google Cloud Console](https://console.cloud.google.com/).
+2. Crie um Novo Projeto (ou selecione um existente).
+3. No menu lateral, vá em **APIs e Serviços > Credenciais**.
+4. Clique em **+ CRIAR CREDENCIAIS** (no topo) > **ID do cliente OAuth**.
+5. Se pedir para configurar a "Tela de consentimento OAuth" primeiro:
+   - Escolha **Externo**.
+   - Preencha o nome do App (Tein Intercâmbio) e email de suporte.
+   - Avance até o final.
+6. De volta à criação de ID do cliente:
+   - Tipo de Aplicativo: **Aplicação da Web**.
+   - Nome: Tein Web (exemplo).
+   - URIs de redirecionamento autorizados: Adicione `http://localhost:8000/auth/google/callback` (altere a porta se você não usa a 8000, mas no seu `.env` o padrão é local).
+   - Clique em **Criar**.
+7. Uma janela vai abrir com **Seu ID de cliente** e **Sua chave secreta de cliente**.
+8. Copie e cole no seu arquivo `.env`:
+   ```
+   GOOGLE_CLIENT_ID=seu_id_aqui
+   GOOGLE_CLIENT_SECRET=sua_secret_aqui
+   ```
