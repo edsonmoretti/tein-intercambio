@@ -21,74 +21,45 @@ class DocumentController extends Controller
             'is_mandatory' => 'boolean',
             'expiration_date' => 'nullable|date',
             'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'trip_member_id' => 'nullable' // Can be 'all' or specific ID or null
+            'trip_member_id' => 'nullable'
         ]);
 
-        $status = 'pending';
-        $path = null;
         $driveService = null;
-
-        // Initialize Google Drive Service if user has token
         if (Auth::user()->google_token) {
             $driveService = new \App\Services\GoogleDriveService(Auth::user()->google_token);
         } else {
-            // Force Google Auth if token is missing
             return back()->withErrors([
-                'file' => 'Você precisa conectar sua conta do Google para enviar documentos.
+                'file' => 'Você precisa conectar sua conta do Google para enviar documentos. 
             Por favor, faça logout e login novamente com o Google e conceda permissão para o Google Drive.'
             ]);
         }
 
-        if ($request->hasFile('file')) {
-            try {
-                // 1. Find or Create "Intercambios" root folder (optional, or just use root)
-                // For now, let's just create a folder for the Trip
-                $tripFolderName = 'Intercambio - ' . $trip->destination . ' (' . $trip->start_date->format('Y') . ')';
-                $tripFolderId = $driveService->findFolderByName($tripFolderName);
-
-                if (!$tripFolderId) {
-                    $tripFolder = $driveService->createFolder($tripFolderName);
-                    $tripFolderId = $tripFolder->id;
-                }
-
-                // 2. Upload file
-                $uploadedFile = $driveService->uploadFile($request->file('file'), $tripFolderId);
-
-                // Use webViewLink as the path/url
-                $path = $uploadedFile->webViewLink;
-                $status = 'sent';
-
-            } catch (\Google\Service\Exception $e) {
-                if ($e->getCode() == 401) {
-                    return back()->withErrors(['file' => 'Sua sessão do Google expirou. Por favor, faça logout e login novamente.']);
-                }
-                return back()->withErrors(['file' => 'Erro do Google Drive: ' . $e->getMessage()]);
-            } catch (\Exception $e) {
-                return back()->withErrors(['file' => 'Erro ao enviar para o Google Drive: ' . $e->getMessage()]);
-            }
-        }
-
         $membersToAssign = [];
         if ($data['trip_member_id'] === 'all') {
-            $membersToAssign = $trip->members()->pluck('id')->toArray();
+            $membersToAssign = $trip->members; // Get models
         } elseif (!empty($data['trip_member_id'])) {
-            $membersToAssign = [$data['trip_member_id']];
+            $membersToAssign = $trip->members()->where('id', $data['trip_member_id'])->get();
         }
 
-        // If no member selected (or empty list), just create one generic/unassigned
-        if (empty($membersToAssign)) {
-            $trip->documents()->create([
-                'type' => $data['type'],
-                'is_mandatory' => $data['is_mandatory'] ?? false,
-                'expiration_date' => $data['expiration_date'] ?? null,
-                'file_path' => $path,
-                'status' => $status,
-                'trip_member_id' => null
-            ]);
-        } else {
-            foreach ($membersToAssign as $memberId) {
-                // If uploading a file for MULTIPLE people, loop through.
-                // Note: On Drive it will be the SAME link for everyone.
+        try {
+            // Base Structure: {APP_NAME} > Viagens
+            $rootId = $driveService->ensureFolder(config('app.name'));
+            $viagensId = $driveService->ensureFolder('Viagens', $rootId);
+
+            // CASE 1: No specific members (General Trip Document)
+            if (empty($membersToAssign) || count($membersToAssign) === 0) {
+                $status = 'pending';
+                $path = null;
+
+                if ($request->hasFile('file')) {
+                    // Structure: ... / {Destination}
+                    $tripFolderName = $trip->destination;
+                    $tripFolderId = $driveService->ensureFolder($tripFolderName, $viagensId);
+
+                    $uploadedFile = $driveService->uploadFile($request->file('file'), $tripFolderId);
+                    $path = $uploadedFile->webViewLink;
+                    $status = 'sent';
+                }
 
                 $trip->documents()->create([
                     'type' => $data['type'],
@@ -96,9 +67,45 @@ class DocumentController extends Controller
                     'expiration_date' => $data['expiration_date'] ?? null,
                     'file_path' => $path,
                     'status' => $status,
-                    'trip_member_id' => $memberId
+                    'trip_member_id' => null
                 ]);
+
+            } else {
+                // CASE 2: Assign to Members (Structure per user request)
+                foreach ($membersToAssign as $member) {
+                    $status = 'pending';
+                    $path = null;
+
+                    if ($request->hasFile('file')) {
+                        // Structure: ... / {Destination}({ID}) / {MemberName}
+                        $tripFolderName = $trip->destination . '(' . $trip->id . ')';
+                        $tripFolderId = $driveService->ensureFolder($tripFolderName, $viagensId);
+
+                        $memberFolderId = $driveService->ensureFolder($member->name, $tripFolderId);
+
+                        $uploadedFile = $driveService->uploadFile($request->file('file'), $memberFolderId);
+                        $path = $uploadedFile->webViewLink;
+                        $status = 'sent';
+                    }
+
+                    $trip->documents()->create([
+                        'type' => $data['type'],
+                        'is_mandatory' => $data['is_mandatory'] ?? false,
+                        'expiration_date' => $data['expiration_date'] ?? null,
+                        'file_path' => $path,
+                        'status' => $status,
+                        'trip_member_id' => $member->id
+                    ]);
+                }
             }
+
+        } catch (\Google\Service\Exception $e) {
+            if ($e->getCode() == 401) {
+                return back()->withErrors(['file' => 'Sua sessão do Google expirou. Por favor, faça logout e login novamente.']);
+            }
+            return back()->withErrors(['file' => 'Erro do Google Drive: ' . $e->getMessage()]);
+        } catch (\Exception $e) {
+            return back()->withErrors(['file' => 'Erro ao enviar para o Google Drive: ' . $e->getMessage()]);
         }
 
         return back()->with('success', 'Documento(s) adicionado(s)!');

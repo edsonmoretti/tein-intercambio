@@ -50,9 +50,19 @@ class GoogleDriveService
         ]);
     }
 
+    public function ensureFolder($name, $parentId = null)
+    {
+        $folderId = $this->findFolderByName($name, $parentId);
+        if ($folderId) {
+            return $folderId;
+        }
+        $folder = $this->createFolder($name, $parentId);
+        return $folder->id;
+    }
+
     public function findFolderByName($name, $parentId = null)
     {
-        $query = "mimeType='application/vnd.google-apps.folder' and name='$name' and trashed=false";
+        $query = "mimeType='application/vnd.google-apps.folder' and name='" . str_replace("'", "\'", $name) . "' and trashed=false";
         if ($parentId) {
             $query .= " and '$parentId' in parents";
         }
