@@ -6,7 +6,12 @@ import {
     Menu,
     X,
     LogOut,
-    User
+    User,
+    Users,
+    ShoppingBasket,
+    CheckSquare,
+    Heart,
+    DollarSign
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -38,7 +43,12 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
     }, [flash]);
 
     const navItems = [
+        { name: 'Família', href: '/family', icon: Users },
+        { name: 'Compras', href: '/shopping', icon: ShoppingBasket },
+        { name: 'Checklist', href: '/checklist', icon: CheckSquare },
         { name: 'Viagens', href: '/trips', icon: Plane },
+        { name: 'Saúde', href: '#', icon: Heart }, // Placeholder
+        { name: 'Financeiro', href: '#', icon: DollarSign }, // Placeholder
         { name: 'Meu Perfil', href: '/profile', icon: User },
     ];
 

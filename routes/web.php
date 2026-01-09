@@ -31,6 +31,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
 
     Route::resource('trips', TripController::class);
+    Route::resource('family', App\Http\Controllers\Web\FamilyMemberController::class)->only(['index', 'store', 'destroy']);
+    Route::resource('shopping', App\Http\Controllers\Web\ShoppingController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::resource('checklist', App\Http\Controllers\Web\GeneralTaskController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['checklist' => 'generalTask']);
 
     // Sub-resources for Trips
     Route::post('/trips/{trip}/tasks', [TaskController::class, 'store'])->name('tasks.store');

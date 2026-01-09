@@ -39,11 +39,16 @@ const PURCHASE_CATEGORIES = [
     { id: 'other', label: 'Outros' },
 ];
 
-export default function Show({ trip, errors }: { trip: any; errors: any }) {
+export default function Show({ trip, familyMembers = [], errors }: { trip: any; familyMembers: any[]; errors: any }) {
     const [activeTab, setActiveTab] = useState('details');
     // Checklist Filtering
     const [checklistFilter, setChecklistFilter] = useState<string>('all');
     const [fileInputKey, setFileInputKey] = useState(Date.now());
+
+    // Member Selection State
+    const [memberSelection, setMemberSelection] = useState<string>('');
+
+    // ...
 
     // Task Form
     const {
@@ -264,6 +269,18 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
         user_id: '', // Optional linkage to user account
     });
 
+    const handleMemberSelect = (val: string) => {
+        setMemberSelection(val);
+        if (val === 'other') {
+            setMemberData('name', '');
+        } else {
+            const selected = familyMembers.find((m: any) => m.id.toString() === val);
+            if (selected) {
+                setMemberData('name', selected.name);
+            }
+        }
+    };
+
     const submitMember = (e: React.FormEvent) => {
         e.preventDefault();
         postMember(`/trips/${trip.id}/members`, {
@@ -477,7 +494,9 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                                         {(trip.members || []).length === 0 && <p className="text-sm text-slate-500">Nenhum participante adicionado.</p>}
                                         {(trip.members || []).map((member: any) => (
                                             <div key={member.id} className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 ring-2 ring-white dark:bg-slate-800 dark:ring-slate-950" title={member.name}>
-                                                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{member.name.charAt(0)}</span>
+                                                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                                                    {member.name.charAt(0)}
+                                                </span>
                                             </div>
                                         ))}
                                         {(trip.members || []).length > 0 && (
@@ -499,21 +518,41 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                             <CardDescription>Cadastre quem participará desta viagem (você, cônjuge, filho(a), etc).</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <form onSubmit={submitMember} className="flex items-end gap-4">
-                                <div className="flex-1 space-y-2">
-                                    <Label>Nome do Participante</Label>
-                                    <Input
-                                        value={memberData.name}
-                                        onChange={(e) => setMemberData('name', e.target.value)}
-                                        placeholder="Ex: João, Maria, Eu..."
-                                        required
-                                    />
+
+                            <form onSubmit={submitMember} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                                <div className="space-y-2 md:col-span-5">
+                                    <Label>Selecionar da Família</Label>
+                                    <Select value={memberSelection} onValueChange={handleMemberSelect}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione um membro..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {familyMembers?.map((m: any) => (
+                                                <SelectItem key={m.id} value={m.id.toString()}>{m.name}</SelectItem>
+                                            ))}
+                                            <SelectItem value="other">Outro (Convidado/Externo)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                                <Button type="submit" disabled={memberProcessing}>
-                                    Adicionar
-                                </Button>
+                                {memberSelection === 'other' && (
+                                    <div className="space-y-2 md:col-span-5">
+                                        <Label>Nome do Convidado</Label>
+                                        <Input
+                                            value={memberData.name}
+                                            onChange={(e) => setMemberData('name', e.target.value)}
+                                            placeholder="Ex: Amigo João"
+                                            required
+                                        />
+                                    </div>
+                                )}
+                                <div className="md:col-span-2">
+                                    <Button type="submit" disabled={memberProcessing || !memberData.name} className="w-full">
+                                        Adicionar
+                                    </Button>
+                                </div>
                             </form>
                         </CardContent>
+
                     </Card>
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -1312,7 +1351,7 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                     </div>
                 </TabsContent>
             </Tabs>
-        </AuthenticatedLayout>
+        </AuthenticatedLayout >
     );
 }
 
