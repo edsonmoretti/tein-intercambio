@@ -7,7 +7,7 @@ export default function GuestLayout({ children }: { children: React.ReactNode })
                 <Link href="/">
                     <div className="flex items-center justify-center space-x-2">
                         <span className="text-3xl font-bold tracking-tighter text-slate-900 dark:text-white">
-                            Inter<span className="text-blue-600">Cambio</span>
+                            Lar<span className="text-blue-600">Digital</span>
                         </span>
                     </div>
                 </Link>

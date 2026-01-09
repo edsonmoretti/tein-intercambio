@@ -1,11 +1,11 @@
 import { useEffect, FormEventHandler } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import GuestLayout from '@/layouts/GuestLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-export default function Login({ status, canResetPassword }: { status?: string, canResetPassword?: boolean }) {
+export default function Login({ status, canResetPassword, canRegister }: { status?: string, canResetPassword?: boolean, canRegister?: boolean }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -80,9 +80,18 @@ export default function Login({ status, canResetPassword }: { status?: string, c
 
                 <div className="mt-4 text-center text-sm text-slate-600 dark:text-slate-400">
                     Não tem uma conta?{' '}
-                    <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                        Cadastre-se (envie e-mail para edsonmoretti@gmail.com)
-                    </span>
+                    {canRegister ? (
+                        <Link
+                            href="/register"
+                            className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                        >
+                            Cadastre-se
+                        </Link>
+                    ) : (
+                        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                            Cadastre-se (envie e-mail para edsonmoretti@gmail.com)
+                        </span>
+                    )}
                 </div>
             </form>
         </GuestLayout>

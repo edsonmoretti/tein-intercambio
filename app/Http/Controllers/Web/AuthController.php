@@ -12,7 +12,9 @@ class AuthController extends Controller
 {
     public function create()
     {
-        return Inertia::render('Auth/Login');
+        return Inertia::render('Auth/Login', [
+            'canRegister' => env('ALLOW_REGISTRATION', false),
+        ]);
     }
 
     public function store(Request $request)
@@ -41,5 +43,40 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    public function registerCreate()
+    {
+        if (!env('ALLOW_REGISTRATION', false)) {
+            abort(404);
+        }
+        return Inertia::render('Auth/Register');
+    }
+
+    public function registerStore(Request $request)
+    {
+        if (!env('ALLOW_REGISTRATION', false)) {
+            abort(404);
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:' . \App\Models\User::class,
+            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $user = \App\Models\User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+            'phone' => $request->phone,
+            'type' => 'student', // Default type
+            'status' => 'planning',
+        ]);
+
+        Auth::login($user);
+
+        return redirect(route('dashboard'));
     }
 }
