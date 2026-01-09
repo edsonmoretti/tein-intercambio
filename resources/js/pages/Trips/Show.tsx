@@ -43,6 +43,7 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
     const [activeTab, setActiveTab] = useState('details');
     // Checklist Filtering
     const [checklistFilter, setChecklistFilter] = useState<string>('all');
+    const [fileInputKey, setFileInputKey] = useState(Date.now());
 
     // Task Form
     const {
@@ -147,7 +148,11 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
     const submitDocument = (e: React.FormEvent) => {
         e.preventDefault();
         postDocument(`/trips/${trip.id}/documents`, {
-            onSuccess: () => resetDocument(),
+            onSuccess: () => {
+                resetDocument();
+                // Reset file input manually if needed, but key change is better
+                setFileInputKey(Date.now());
+            },
         });
     };
 
@@ -901,6 +906,7 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                                 <div className="w-full space-y-2 md:w-[200px]">
                                     <Label>Arquivo (Opcional)</Label>
                                     <Input
+                                        key={fileInputKey}
                                         type="file"
                                         onChange={(e) => e.target.files && setDocumentData('file', e.target.files[0])}
                                         className="cursor-pointer"

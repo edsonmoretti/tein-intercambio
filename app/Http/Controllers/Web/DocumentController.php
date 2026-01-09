@@ -35,9 +35,13 @@ class DocumentController extends Controller
         }
 
         $membersToAssign = [];
-        if ($data['trip_member_id'] === 'all') {
-            $membersToAssign = $trip->members; // Get models
-        } elseif (!empty($data['trip_member_id'])) {
+
+
+        $membersToAssign = [];
+        // If 'all', we treat as General Document (No specific member logic), 
+        // effectively CASE 1. So we leave membersToAssign empty.
+        // We only populate membersToAssign if a SPECIFIC member ID is provided.
+        if (!empty($data['trip_member_id']) && $data['trip_member_id'] !== 'all') {
             $membersToAssign = $trip->members()->where('id', $data['trip_member_id'])->get();
         }
 
