@@ -79,4 +79,53 @@ class AuthController extends Controller
 
         return redirect(route('dashboard'));
     }
+
+    public function redirectToGoogle()
+    {
+        return \Laravel\Socialite\Facades\Socialite::driver('google')
+            ->scopes(['https://www.googleapis.com/auth/drive.file']) // Request Drive scope immediately
+            ->with(['access_type' => 'offline', 'prompt' => 'consent select_account']) // Refresh token
+            ->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            /** @var \Laravel\Socialite\Two\User $googleUser */
+            $googleUser = \Laravel\Socialite\Facades\Socialite::driver('google')->user();
+
+            $user = \App\Models\User::where('google_id', $googleUser->id)
+                ->orWhere('email', $googleUser->email)
+                ->first();
+
+            if ($user) {
+                // Update tokens
+                $user->update([
+                    'google_id' => $googleUser->id,
+                    'google_token' => $googleUser->token,
+                    'google_refresh_token' => $googleUser->refreshToken,
+                ]);
+            } else {
+                // Create user
+                $user = \App\Models\User::create([
+                    'name' => $googleUser->name,
+                    'email' => $googleUser->email,
+                    'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(24)), // Random password
+                    'google_id' => $googleUser->id,
+                    'google_token' => $googleUser->token,
+                    'google_refresh_token' => $googleUser->refreshToken,
+                    'type' => 'student',
+                    'status' => 'planning',
+                    'email_verified_at' => now(),
+                ]);
+            }
+
+            Auth::login($user);
+
+            return redirect()->intended(route('dashboard'));
+
+        } catch (\Exception $e) {
+            return redirect(route('login'))->withErrors(['email' => 'Unable to login with Google: ' . $e->getMessage()]);
+        }
+    }
 }

@@ -20,6 +20,9 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register', [AuthController::class, 'registerCreate'])->name('register');
     Route::post('/register', [AuthController::class, 'registerStore']);
+
+    Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
+    Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
 });
 
 Route::middleware('auth')->group(function () {

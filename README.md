@@ -84,3 +84,18 @@ Para habilitar o login com Google, você precisa obter as chaves do Google (Clie
    GOOGLE_CLIENT_ID=seu_id_aqui
    GOOGLE_CLIENT_SECRET=sua_secret_aqui
    ```
+
+### Resolvendo Erro 403: access_denied (ambiente de teste/dev)
+
+Esse erro (403: access_denied) ocorre porque sua aplicação no Google Cloud está configurada como "Test" (Teste) e você não adicionou seu e-mail como testador, OU porque você pediu um escopo sensível (Google Drive) e o app ainda não foi verificado.
+
+**Como resolver imediatamente (Modo Teste):**
+
+1. Volte ao Google Cloud Console.
+2. Vá em **APIs e Serviços > Tela de consentimento OAuth**.
+3. Você verá que o "Status de publicação" está como **Teste**.
+4. Role para baixo até a seção **Usuários de teste**.
+5. Clique em **+ ADD USERS** (Adicionar usuários).
+6. Adicione o e-mail que você está tentando usar para logar (ex: seu.email@gmail.com).
+7. Use o mesmo e-mail que está sofrendo o bloqueio.
+8. Salve.
