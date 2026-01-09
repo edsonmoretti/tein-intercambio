@@ -42,17 +42,16 @@ class DocumentController extends Controller
         }
 
         try {
-            // Base Structure: {APP_NAME} > Viagens
+            // Base Structure: {APP_NAME} > Documentos > Viagens
             $rootId = $driveService->ensureFolder(config('app.name'));
-            $viagensId = $driveService->ensureFolder('Viagens', $rootId);
+            $docsId = $driveService->ensureFolder('Documentos', $rootId);
+            $viagensId = $driveService->ensureFolder('Viagens', $docsId);
 
-            // Trip Folder: {Place} - {Country}, {City} ({ID})
+            // Trip Folder: {Place} - {City}, {Country} ({ID})
+            // Example: NED College - Dublin, Irlanda (2)
             $placePrefix = $trip->place ? $trip->place . ' - ' : '';
-            $tripFolderName = "{$placePrefix}{$trip->country}, {$trip->city} ({$trip->id})";
+            $tripFolderName = "{$placePrefix}{$trip->city}, {$trip->country} ({$trip->id})";
             $tripFolderId = $driveService->ensureFolder($tripFolderName, $viagensId);
-
-            // Document Type Folder: {Nome do Documento}
-            $typeFolderId = $driveService->ensureFolder($data['type'], $tripFolderId);
 
             // CASE 1: No specific members (General Trip Document)
             if (empty($membersToAssign) || count($membersToAssign) === 0) {
@@ -60,7 +59,10 @@ class DocumentController extends Controller
                 $path = null;
 
                 if ($request->hasFile('file')) {
-                    $uploadedFile = $driveService->uploadFile($request->file('file'), $typeFolderId);
+                    $file = $request->file('file');
+                    $fileName = $data['type'] . ' - ' . $file->getClientOriginalName();
+
+                    $uploadedFile = $driveService->uploadFile($file, $tripFolderId, $fileName);
                     $path = $uploadedFile->webViewLink;
                     $status = 'sent';
                 }
@@ -81,7 +83,13 @@ class DocumentController extends Controller
                     $path = null;
 
                     if ($request->hasFile('file')) {
-                        $uploadedFile = $driveService->uploadFile($request->file('file'), $typeFolderId);
+                        // Folder: {MemberName}
+                        $memberFolderId = $driveService->ensureFolder($member->name, $tripFolderId);
+
+                        $file = $request->file('file');
+                        $fileName = $data['type'] . ' - ' . $file->getClientOriginalName();
+
+                        $uploadedFile = $driveService->uploadFile($file, $memberFolderId, $fileName);
                         $path = $uploadedFile->webViewLink;
                         $status = 'sent';
                     }
@@ -131,19 +139,29 @@ class DocumentController extends Controller
                 $driveService = new \App\Services\GoogleDriveService(Auth::user()->google_token);
 
                 try {
-                    // Base Structure: {APP_NAME} > Viagens
+                    // Base Structure: {APP_NAME} > Documentos > Viagens
                     $rootId = $driveService->ensureFolder(config('app.name'));
-                    $viagensId = $driveService->ensureFolder('Viagens', $rootId);
+                    $docsId = $driveService->ensureFolder('Documentos', $rootId);
+                    $viagensId = $driveService->ensureFolder('Viagens', $docsId);
 
                     $trip = $document->trip;
+                    // Trip Folder: {Place} - {City}, {Country} ({ID})
                     $placePrefix = $trip->place ? $trip->place . ' - ' : '';
-                    $tripFolderName = "{$placePrefix}{$trip->country}, {$trip->city} ({$trip->id})";
+                    $tripFolderName = "{$placePrefix}{$trip->city}, {$trip->country} ({$trip->id})";
                     $tripFolderId = $driveService->ensureFolder($tripFolderName, $viagensId);
 
-                    $docType = $data['type'] ?? $document->type;
-                    $typeFolderId = $driveService->ensureFolder($docType, $tripFolderId);
+                    $targetFolderId = $tripFolderId;
 
-                    $uploadedFile = $driveService->uploadFile($request->file('file'), $typeFolderId);
+                    // If it belongs to a member, ensure Member folder
+                    if ($document->tripMember) {
+                        $targetFolderId = $driveService->ensureFolder($document->tripMember->name, $tripFolderId);
+                    }
+
+                    $docType = $data['type'] ?? $document->type;
+                    $file = $request->file('file');
+                    $fileName = $docType . ' - ' . $file->getClientOriginalName();
+
+                    $uploadedFile = $driveService->uploadFile($file, $targetFolderId, $fileName);
                     $data['file_path'] = $uploadedFile->webViewLink;
                     $data['status'] = 'sent';
 

@@ -33,10 +33,10 @@ class GoogleDriveService
         return $this->service->files->create($fileMetadata, ['fields' => 'id']);
     }
 
-    public function uploadFile(UploadedFile $file, $folderId = null)
+    public function uploadFile(UploadedFile $file, $folderId = null, $customName = null)
     {
         $fileMetadata = new DriveFile([
-            'name' => $file->getClientOriginalName(),
+            'name' => $customName ?? $file->getClientOriginalName(),
             'parents' => $folderId ? [$folderId] : []
         ]);
 
