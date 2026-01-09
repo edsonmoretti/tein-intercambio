@@ -65,14 +65,7 @@ export default function Index({ trips }: { trips: Trip[] }) {
                                 >
                                     {trip.status.toUpperCase()}
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 text-red-500 opacity-0 transition-opacity group-hover:opacity-100"
-                                    onClick={() => handleDelete(trip.id)}
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
+
                             </div>
                             <CardTitle className="mt-2 flex items-center gap-2 text-xl">
                                 <span className="mr-1 text-2xl">🌍</span>

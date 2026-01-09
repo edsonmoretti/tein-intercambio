@@ -280,6 +280,19 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
     const totalEstimated = trip.purchases?.reduce((acc: number, curr: any) => acc + Number(curr.estimated_cost || 0), 0) || 0;
     const totalActual = trip.purchases?.reduce((acc: number, curr: any) => acc + Number(curr.actual_cost || 0), 0) || 0;
 
+    const handleDeleteTrip = () => {
+        if (confirm('Tem certeza que deseja excluir esta viagem? Esta ação não pode ser desfeita.')) {
+            router.delete(`/trips/${trip.id}`);
+        }
+    };
+
+    // ... (rest of filtering logic)
+
+    // Summary Helpers
+    const pendingTasks = (trip.tasks || []).filter((t: any) => t.status !== 'completed').slice(0, 5);
+    const mandatoryDocs = (trip.documents || []).filter((d: any) => d.is_mandatory);
+    const pendingDocs = mandatoryDocs.filter((d: any) => d.status !== 'valid');
+
     return (
         <AuthenticatedLayout>
             <Head title={`${trip.city}, ${trip.country}`} />
@@ -314,6 +327,9 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                         </p>
                     </div>
                     <div className="flex gap-2">
+                        <Button variant="ghost" onClick={handleDeleteTrip} className="text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20">
+                            <Trash2 className="mr-2 h-4 w-4" /> Excluir Viagem
+                        </Button>
                         <Link href={`/trips/${trip.id}/edit`}>
                             <Button variant="outline" className="dark:text-white">
                                 Editar
@@ -334,8 +350,8 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                     <TabsTrigger value="documents">Documentos</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="details" className="space-y-4">
-                    {/* ... (existing details content) ... */}
+                <TabsContent value="details" className="space-y-6">
+                    {/* Stats Grid */}
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -346,6 +362,9 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                                 <div className="text-2xl font-bold">
                                     {trip.tasks?.filter((t: any) => t.status === 'completed').length} / {trip.tasks?.length || 0}
                                 </div>
+                                <p className="text-xs text-muted-foreground">
+                                    {trip.tasks?.length > 0 ? Math.round((trip.tasks.filter((t: any) => t.status === 'completed').length / trip.tasks.length) * 100) : 0}% concluído
+                                </p>
                             </CardContent>
                         </Card>
                         <Card>
@@ -355,28 +374,121 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold text-slate-900 dark:text-white">${Number(totalBudget).toFixed(2)}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    Planejado
+                                </p>
                             </CardContent>
                         </Card>
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Compras Realizadas</CardTitle>
-                                <ShoppingBag className="h-4 w-4 text-slate-500" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">
-                                    {trip.purchases?.filter((p: any) => p.status === 'completed').length} / {trip.purchases?.length || 0}
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Gasto Real (Compras)</CardTitle>
+                                <CardTitle className="text-sm font-medium">Gasto Real</CardTitle>
                                 <CreditCard className="h-4 w-4 text-slate-500" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold text-green-600 dark:text-green-400">${Number(totalActual).toFixed(2)}</div>
+                                <div className={cn("text-2xl font-bold", totalActual > totalBudget && totalBudget > 0 ? "text-red-500" : "text-green-600")}>
+                                    ${Number(totalActual).toFixed(2)}
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    Em compras realizadas
+                                </p>
                             </CardContent>
                         </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Dias Restantes</CardTitle>
+                                <Calendar className="h-4 w-4 text-slate-500" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">
+                                    {trip.start_date ? Math.ceil((new Date(trip.start_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : '-'}
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    Para a viagem
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <div className="grid gap-6 md:grid-cols-2">
+                        {/* Pending Tasks Widget */}
+                        <Card className="h-full">
+                            <CardHeader>
+                                <CardTitle>Próximas Tarefas</CardTitle>
+                                <CardDescription>O que você precisa fazer em breve.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {pendingTasks.length === 0 ? (
+                                    <p className="text-sm text-slate-500">Tudo em dia! Nenhuma tarefa pendente.</p>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {pendingTasks.map((task: any) => (
+                                            <div key={task.id} className="flex items-start gap-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0 dark:border-slate-800">
+                                                <Circle className="mt-0.5 h-4 w-4 text-slate-400" />
+                                                <div className="flex-1 space-y-1">
+                                                    <p className="text-sm font-medium">{task.description}</p>
+                                                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                                                        <span className="capitalize">{task.category?.replace('_', ' ')}</span>
+                                                        {task.due_date && <span>• {new Date(task.due_date).toLocaleDateString()}</span>}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Documents Status or Other Info */}
+                        <div className="space-y-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Status Documentos</CardTitle>
+                                    <CardDescription>Documentos obrigatórios pendentes.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {pendingDocs.length === 0 ? (
+                                        <div className="flex items-center gap-2 text-green-600">
+                                            <CheckCircle className="h-5 w-5" />
+                                            <span className="text-sm font-medium">Todos documentos obrigatórios ok!</span>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {pendingDocs.map((doc: any) => (
+                                                <div key={doc.id} className="flex items-center justify-between rounded-md bg-yellow-50 p-3 dark:bg-yellow-900/10">
+                                                    <div className="flex items-center gap-2">
+                                                        <FileText className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
+                                                        <span className="text-sm font-medium text-yellow-900 dark:text-yellow-100">{doc.type}</span>
+                                                    </div>
+                                                    <span className="text-xs font-semibold uppercase tracking-wider text-yellow-700 dark:text-yellow-500">Pendente</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+
+                            {/* Participation Info */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Participantes</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex -space-x-2 overflow-hidden">
+                                        {(trip.members || []).length === 0 && <p className="text-sm text-slate-500">Nenhum participante adicionado.</p>}
+                                        {(trip.members || []).map((member: any) => (
+                                            <div key={member.id} className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 ring-2 ring-white dark:bg-slate-800 dark:ring-slate-950" title={member.name}>
+                                                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{member.name.charAt(0)}</span>
+                                            </div>
+                                        ))}
+                                        {(trip.members || []).length > 0 && (
+                                            <Link href="#" onClick={(e) => { e.preventDefault(); setActiveTab('members'); }} className="ml-4 flex items-center text-xs text-blue-600 hover:underline">
+                                                Gerenciar
+                                            </Link>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </div>
                 </TabsContent>
 
@@ -552,8 +664,8 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                             <CardTitle>Nova Tarefa</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <form onSubmit={submitTask} className="flex flex-col items-end gap-4 md:flex-row">
-                                <div className="w-full flex-1 space-y-2">
+                            <form onSubmit={submitTask} className="grid w-full grid-cols-1 gap-4 md:grid-cols-12 md:items-end">
+                                <div className="space-y-2 md:col-span-5">
                                     <Label>Descrição</Label>
                                     <Input
                                         value={taskData.description}
@@ -562,13 +674,14 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                                         required
                                     />
                                 </div>
-                                <div className="w-full space-y-2 md:w-[200px]">
-                                    <Label>Atribuir a (Opcional)</Label>
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label>Atribuir a</Label>
                                     <Select value={taskData.trip_member_id} onValueChange={(val) => setTaskData('trip_member_id', val)}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Todos" />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="all">Todos</SelectItem>
                                             {(trip.members || []).map((m: any) => (
                                                 <SelectItem key={m.id} value={m.id.toString()}>
                                                     {m.name}
@@ -577,7 +690,7 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="w-full space-y-2 md:w-[200px]">
+                                <div className="space-y-2 md:col-span-2">
                                     <Label>Categoria</Label>
                                     <Select value={taskData.category} onValueChange={(val) => setTaskData('category', val)}>
                                         <SelectTrigger>
@@ -592,8 +705,8 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="w-full space-y-2 md:w-[150px]">
-                                    <Label>Prazo (Opcional)</Label>
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label>Prazo</Label>
                                     <Input
                                         type="date"
                                         className="dark:[color-scheme:dark]"
@@ -601,9 +714,11 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                                         onChange={(e) => setTaskData('due_date', e.target.value)}
                                     />
                                 </div>
-                                <Button type="submit" disabled={taskProcessing}>
-                                    <Plus className="h-4 w-4" />
-                                </Button>
+                                <div className="md:col-span-1">
+                                    <Button type="submit" disabled={taskProcessing} className="w-full">
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </form>
                         </CardContent>
                     </Card>
@@ -713,8 +828,8 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                             <CardTitle>Planejar Compra</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <form onSubmit={submitPurchase} className="grid grid-cols-1 items-start gap-4 md:grid-cols-4">
-                                <div className="space-y-2 md:col-span-1">
+                            <form onSubmit={submitPurchase} className="grid w-full grid-cols-1 gap-4 md:grid-cols-12 md:items-end">
+                                <div className="space-y-2 md:col-span-5 relative">
                                     <Label>Item</Label>
                                     <Input
                                         value={purchaseData.item}
@@ -722,10 +837,10 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                                         placeholder="Ex: Mala grande"
                                         required
                                     />
-                                    {purchaseErrors.item && <span className="text-xs text-red-500">{purchaseErrors.item}</span>}
+                                    {purchaseErrors.item && <span className="absolute -bottom-5 w-full text-xs text-red-500 truncate" title={purchaseErrors.item}>{purchaseErrors.item}</span>}
                                 </div>
-                                <div className="space-y-2 md:col-span-1">
-                                    <Label>Custo Estimado ($)</Label>
+                                <div className="space-y-2 md:col-span-2 relative">
+                                    <Label>Custo ($)</Label>
                                     <Input
                                         type="text"
                                         inputMode="decimal"
@@ -734,14 +849,13 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                                         placeholder="0.00"
                                         required
                                     />
-                                    {purchaseErrors.estimated_cost && <span className="text-xs text-red-500">{purchaseErrors.estimated_cost}</span>}
+                                    {purchaseErrors.estimated_cost && <span className="absolute -bottom-5 w-full text-xs text-red-500 truncate" title={purchaseErrors.estimated_cost}>{purchaseErrors.estimated_cost}</span>}
                                 </div>
-                                <div className="space-y-2 md:col-span-1">
+                                <div className="space-y-2 md:col-span-2 relative">
                                     <Label>Categoria</Label>
                                     <Select value={purchaseData.category} onValueChange={(val) => setPurchaseData('category', val)}>
                                         <SelectTrigger>
-                                            {' '}
-                                            <SelectValue />{' '}
+                                            <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {PURCHASE_CATEGORIES.map((cat) => (
@@ -751,16 +865,16 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {purchaseErrors.category && <span className="text-xs text-red-500">{purchaseErrors.category}</span>}
+                                    {purchaseErrors.category && <span className="absolute -bottom-5 w-full text-xs text-red-500 truncate" title={purchaseErrors.category}>{purchaseErrors.category}</span>}
                                 </div>
-                                <div className="space-y-2 md:col-span-1">
-                                    <Label>Atribuir a (Opcional)</Label>
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label>Atribuir a</Label>
                                     <Select value={purchaseData.trip_member_id} onValueChange={(val) => setPurchaseData('trip_member_id', val)}>
                                         <SelectTrigger>
-                                            {' '}
-                                            <SelectValue placeholder="Todos" />{' '}
+                                            <SelectValue placeholder="Todos" />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="all">Todos</SelectItem>
                                             {(trip.members || []).map((m: any) => (
                                                 <SelectItem key={m.id} value={m.id.toString()}>
                                                     {m.name}
@@ -769,9 +883,9 @@ export default function Show({ trip, errors }: { trip: any; errors: any }) {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="pt-8 md:col-span-1">
+                                <div className="md:col-span-1">
                                     <Button type="submit" disabled={purchaseProcessing} className="w-full">
-                                        Adicionar
+                                        <Plus className="h-4 w-4" />
                                     </Button>
                                 </div>
                             </form>
