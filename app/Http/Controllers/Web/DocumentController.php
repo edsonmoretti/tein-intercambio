@@ -5,15 +5,46 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Trip;
 use App\Models\Document;
+use App\Models\User;
+use App\Models\FamilyMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class DocumentController extends Controller
 {
+    /**
+     * Helper to resolve the efficient Google Drive Owner.
+     * Rules:
+     * 1. If user is in a family, find the PRIMARY MEMBER of that family and return their USER account.
+     * 2. If user is NOT in a family, or no primary found, return the user themselves.
+     */
+    private function getFamilyOwner(User $user): User
+    {
+        if ($user->family_id) {
+            // Find the primary member for this family
+            $primaryMember = FamilyMember::where('family_id', $user->family_id)
+                ->where('is_primary', true)
+                ->first();
+
+            if ($primaryMember && $primaryMember->user_id) {
+                // Return the User associated with the primary member
+                return User::find($primaryMember->user_id) ?? $user;
+            }
+        }
+
+        return $user;
+    }
+
     public function store(Request $request, Trip $trip)
     {
         if (Auth::user()->type !== 'admin' && $trip->user_id !== Auth::id()) {
-            abort(403);
+            // Relaxed check: Allow family members to upload to trips owned by family
+            $user = Auth::user();
+            if ($user->family_id && $trip->user->family_id === $user->family_id) {
+                // Allowed
+            } else {
+                abort(403);
+            }
         }
 
         $data = $request->validate([
@@ -25,13 +56,18 @@ class DocumentController extends Controller
         ]);
 
         $driveService = null;
-        if (Auth::user()->google_token) {
-            $driveService = new \App\Services\GoogleDriveService(Auth::user()->google_token);
+
+        // Resolve the Drive Owner (The Family Head)
+        $driveOwner = $this->getFamilyOwner(Auth::user());
+
+        if ($driveOwner->google_token) {
+            $driveService = new \App\Services\GoogleDriveService($driveOwner->google_token);
         } else {
-            return back()->withErrors([
-                'file' => 'Você precisa conectar sua conta do Google para enviar documentos. 
-            Por favor, faça logout e login novamente com o Google e conceda permissão para o Google Drive.'
-            ]);
+            $msg = $driveOwner->id === Auth::id()
+                ? 'Você precisa conectar sua conta do Google para enviar documentos.'
+                : 'O administrador da família precisa conectar a conta do Google para permitir envios.';
+
+            return back()->withErrors(['file' => $msg]);
         }
 
         $membersToAssign = [];
@@ -90,7 +126,7 @@ class DocumentController extends Controller
 
         } catch (\Google\Service\Exception $e) {
             if ($e->getCode() == 401) {
-                return back()->withErrors(['file' => 'Sua sessão do Google expirou. Por favor, faça logout e login novamente.']);
+                return back()->withErrors(['file' => 'A sessão do Google do administrador da família expirou.']);
             }
             return back()->withErrors(['file' => 'Erro do Google Drive: ' . $e->getMessage()]);
         } catch (\Exception $e) {
@@ -102,7 +138,11 @@ class DocumentController extends Controller
 
     public function update(Request $request, Document $document)
     {
-        if (Auth::user()->type !== 'admin' && $document->trip->user_id !== Auth::id()) {
+        // Family authorization check
+        $user = Auth::user();
+        $isFamilyAuth = ($user->family_id && $document->trip->user->family_id === $user->family_id);
+
+        if ($user->type !== 'admin' && $document->trip->user_id !== Auth::id() && !$isFamilyAuth) {
             abort(403);
         }
 
@@ -115,11 +155,11 @@ class DocumentController extends Controller
         ]);
 
         if ($request->hasFile('file')) {
-            // TODO: Handle delete old file from Drive? Risk of deleting user data.
-            // Ideally we just upload a new one and update the link.
+            // Resolve Owner
+            $driveOwner = $this->getFamilyOwner(Auth::user());
 
-            if (Auth::user()->google_token) {
-                $driveService = new \App\Services\GoogleDriveService(Auth::user()->google_token);
+            if ($driveOwner->google_token) {
+                $driveService = new \App\Services\GoogleDriveService($driveOwner->google_token);
 
                 try {
                     $tripFolderId = $this->getTripFolderId($driveService, $document->trip);
@@ -139,7 +179,10 @@ class DocumentController extends Controller
                 }
 
             } else {
-                return back()->withErrors(['file' => 'Você precisa conectar sua conta do Google para enviar documentos.']);
+                $msg = $driveOwner->id === Auth::id()
+                    ? 'Você precisa conectar sua conta do Google para enviar documentos.'
+                    : 'O administrador da família precisa conectar a conta do Google para permitir envios.';
+                return back()->withErrors(['file' => $msg]);
             }
         }
 
@@ -149,16 +192,23 @@ class DocumentController extends Controller
     }
 
     public function destroy(Document $document)
-    {
-        if (Auth::user()->type !== 'admin' && $document->trip->user_id !== Auth::id()) {
+/    {
+        // Family authorization check
+        $user = Auth::user();
+        $isFamilyAuth = ($user->family_id && $document->trip->user->family_id === $user->family_id);
+
+        if ($user->type !== 'admin' && $document->trip->user_id !== Auth::id() && !$isFamilyAuth) {
             abort(403);
         }
 
         // Try to delete from Google Drive if it's a Drive link
         if ($document->file_path && str_contains($document->file_path, 'drive.google.com')) {
-            if (Auth::user()->google_token) {
+            // Resolve Owner
+            $driveOwner = $this->getFamilyOwner(Auth::user());
+
+            if ($driveOwner->google_token) {
                 try {
-                    $driveService = new \App\Services\GoogleDriveService(Auth::user()->google_token);
+                    $driveService = new \App\Services\GoogleDriveService($driveOwner->google_token);
                     // Extract ID from URL
                     if (preg_match('/\/d\/([a-zA-Z0-9_-]+)/', $document->file_path, $matches)) {
                         $fileId = $matches[1];

@@ -13,14 +13,24 @@ class GeneralTaskController extends Controller
 {
     public function index()
     {
-        $tasks = GeneralTask::where('user_id', Auth::id())
-            ->with(['member']) // Eager load assigned member
-            ->orderBy('is_completed') // Pending first
+        $user = Auth::user();
+        $query = GeneralTask::with(['member']);
+
+        if ($user->family_id) {
+            // Get all tasks created by any user in this family
+            // First find all user IDs in this family
+            $familyUserIds = \App\Models\User::where('family_id', $user->family_id)->pluck('id');
+            $query->whereIn('user_id', $familyUserIds);
+        } else {
+            $query->where('user_id', $user->id);
+        }
+
+        $tasks = $query->orderBy('is_completed') // Pending first
             ->orderByDesc('created_at')
             ->get();
 
-        $members = Auth::user()->family_id
-            ? FamilyMember::where('family_id', Auth::user()->family_id)->orderBy('name')->get()
+        $members = $user->family_id
+            ? FamilyMember::where('family_id', $user->family_id)->orderBy('name')->get()
             : [];
 
         return Inertia::render('Checklist/Index', [
@@ -48,8 +58,14 @@ class GeneralTaskController extends Controller
 
     public function update(Request $request, GeneralTask $generalTask)
     {
-        if ($generalTask->user_id !== Auth::id())
+        $user = Auth::user();
+
+        // Allow if owner OR if belonging to same family
+        $isFamilyAuth = ($user->family_id && $generalTask->user->family_id === $user->family_id);
+
+        if ($generalTask->user_id !== $user->id && !$isFamilyAuth) {
             abort(403);
+        }
 
         // Handle toggle status or reassignment
         $generalTask->update($request->only(['is_completed', 'family_member_id']));
@@ -59,8 +75,15 @@ class GeneralTaskController extends Controller
 
     public function destroy(GeneralTask $generalTask)
     {
-        if ($generalTask->user_id !== Auth::id())
+        $user = Auth::user();
+
+        // Allow if owner OR if belonging to same family
+        $isFamilyAuth = ($user->family_id && $generalTask->user->family_id === $user->family_id);
+
+        if ($generalTask->user_id !== $user->id && !$isFamilyAuth) {
             abort(403);
+        }
+
         $generalTask->delete();
         return back()->with('success', 'Tarefa excluída.');
     }

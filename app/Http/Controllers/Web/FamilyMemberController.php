@@ -98,6 +98,12 @@ class FamilyMemberController extends Controller
                 return;
             }
 
+            // Enforce Single Primary: If new member is primary, demote others
+            if (!empty($validated['is_primary'])) {
+                FamilyMember::where('family_id', $user->family_id)
+                    ->update(['is_primary' => false]);
+            }
+
             Log::info("Store: Creating member. LinkedUser: " . ($linkedUser ? $linkedUser->id : 'None'));
 
             Log::info("Store: Creating member. FamilyId used: " . $user->family_id);
@@ -113,10 +119,6 @@ class FamilyMemberController extends Controller
 
             // 3. Link User if exists
             if ($linkedUser) {
-                // Only link if they are not already in another family?
-                // "Todo membro é um usuário... se já tiver em uma família, já aparecerá tudo pra ele."
-                // This implies we hijack their family_id or they join ours.
-                // Let's assume they join ours.
                 $linkedUser->update(['family_id' => $user->family_id]);
             }
         });
@@ -142,10 +144,19 @@ class FamilyMemberController extends Controller
 
         $validated = $request->validate([
             'role' => 'required|string|max:50',
-            // 'is_primary' => 'boolean' // Optional
+            'is_primary' => 'boolean'
         ]);
 
-        $familyMember->update($validated);
+        DB::transaction(function () use ($familyMember, $validated, $user) {
+            // Enforce Single Primary
+            if (!empty($validated['is_primary']) && $validated['is_primary']) {
+                FamilyMember::where('family_id', $user->family_id)
+                    ->where('id', '!=', $familyMember->id)
+                    ->update(['is_primary' => false]);
+            }
+
+            $familyMember->update($validated);
+        });
 
         return back()->with('success', 'Membro atualizado.');
     }

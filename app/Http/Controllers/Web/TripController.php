@@ -13,9 +13,15 @@ class TripController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $trips = $user->type === 'admin'
-            ? Trip::with('user')->get()
-            : Trip::where('user_id', $user->id)->get();
+
+        if ($user->type === 'admin') {
+            $trips = Trip::with('user')->get();
+        } elseif ($user->family_id) {
+            $familyUserIds = \App\Models\User::where('family_id', $user->family_id)->pluck('id');
+            $trips = Trip::whereIn('user_id', $familyUserIds)->get();
+        } else {
+            $trips = Trip::where('user_id', $user->id)->get();
+        }
 
         return Inertia::render('Trips/Index', [
             'trips' => $trips
@@ -48,14 +54,17 @@ class TripController extends Controller
 
     public function show(Trip $trip)
     {
-        if (Auth::user()->type !== 'admin' && $trip->user_id !== Auth::id()) {
+        $user = Auth::user();
+        $isFamilyAuth = ($user->family_id && $trip->user->family_id === $user->family_id);
+
+        if ($user->type !== 'admin' && $trip->user_id !== $user->id && !$isFamilyAuth) {
             abort(403);
         }
 
         $trip->load('documents.member', 'tasks.member', 'budgets', 'events', 'purchases.member', 'housings', 'members');
 
-        $familyMembers = Auth::user()->family_id
-            ? \App\Models\FamilyMember::where('family_id', Auth::user()->family_id)->orderBy('name')->get()
+        $familyMembers = $user->family_id
+            ? \App\Models\FamilyMember::where('family_id', $user->family_id)->orderBy('name')->get()
             : [];
 
         return Inertia::render('Trips/Show', [
@@ -66,7 +75,10 @@ class TripController extends Controller
 
     public function edit(Trip $trip)
     {
-        if (Auth::user()->type !== 'admin' && $trip->user_id !== Auth::id()) {
+        $user = Auth::user();
+        $isFamilyAuth = ($user->family_id && $trip->user->family_id === $user->family_id);
+
+        if ($user->type !== 'admin' && $trip->user_id !== $user->id && !$isFamilyAuth) {
             abort(403);
         }
 
@@ -77,7 +89,10 @@ class TripController extends Controller
 
     public function update(Request $request, Trip $trip)
     {
-        if (Auth::user()->type !== 'admin' && $trip->user_id !== Auth::id()) {
+        $user = Auth::user();
+        $isFamilyAuth = ($user->family_id && $trip->user->family_id === $user->family_id);
+
+        if ($user->type !== 'admin' && $trip->user_id !== $user->id && !$isFamilyAuth) {
             abort(403);
         }
 
@@ -98,7 +113,10 @@ class TripController extends Controller
 
     public function destroy(Trip $trip)
     {
-        if (Auth::user()->type !== 'admin' && $trip->user_id !== Auth::id()) {
+        $user = Auth::user();
+        $isFamilyAuth = ($user->family_id && $trip->user->family_id === $user->family_id);
+
+        if ($user->type !== 'admin' && $trip->user_id !== $user->id && !$isFamilyAuth) {
             abort(403);
         }
 

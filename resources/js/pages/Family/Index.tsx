@@ -25,6 +25,7 @@ export default function Index({ members }: { members: any[] }) {
     // Edit State
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editRole, setEditRole] = useState('');
+    const [editIsPrimary, setEditIsPrimary] = useState(false);
 
     const deleteMember = (id: number) => {
         if (confirm('Remover este membro da família? Se ele tiver conta, perderá o acesso a esta família.')) {
@@ -35,16 +36,19 @@ export default function Index({ members }: { members: any[] }) {
     const startEdit = (member: any) => {
         setEditingId(member.id);
         setEditRole(member.role);
+        setEditIsPrimary(member.is_primary);
     };
 
     const cancelEdit = () => {
         setEditingId(null);
         setEditRole('');
+        setEditIsPrimary(false);
     };
 
     const saveEdit = (id: number) => {
         router.put(`/family/${id}`, {
             role: editRole,
+            is_primary: editIsPrimary,
         }, {
             onSuccess: () => cancelEdit()
         });
@@ -124,6 +128,9 @@ export default function Index({ members }: { members: any[] }) {
                                     />
                                     <Label htmlFor="is_primary" className="cursor-pointer">Membro Principal?</Label>
                                 </div>
+                                <p className="text-xs text-muted-foreground">
+                                    Arquivos anexados por qualquer membro irão para o Google Drive deste usuário (Membro Principal).
+                                </p>
 
                                 <Button type="submit" className="w-full" disabled={processing}>
                                     <Plus className="mr-2 h-4 w-4" /> Cadastrar
@@ -160,23 +167,40 @@ export default function Index({ members }: { members: any[] }) {
                                                 <p className="text-sm text-slate-500">{member.email}</p>
 
                                                 {editingId === member.id ? (
-                                                    <div className="mt-2 flex items-center gap-2">
-                                                        <Select value={editRole} onValueChange={setEditRole}>
-                                                            <SelectTrigger className="h-8 w-[140px]">
-                                                                <SelectValue placeholder="Função" />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {ROLES.map((role, index) => (
-                                                                    <SelectItem key={`edit-${index}-${role}`} value={role}>{role}</SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                        <Button size="icon" className="h-8 w-8 bg-green-600 hover:bg-green-700" onClick={() => saveEdit(member.id)}>
-                                                            <Check className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={cancelEdit}>
-                                                            <X className="h-4 w-4" />
-                                                        </Button>
+                                                    <div className="mt-2 flex flex-col gap-3">
+                                                        <div className="flex gap-2">
+                                                            <Select value={editRole} onValueChange={setEditRole}>
+                                                                <SelectTrigger className="h-8 w-[140px]">
+                                                                    <SelectValue placeholder="Função" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {ROLES.map((role, index) => (
+                                                                        <SelectItem key={`edit-${index}-${role}`} value={role}>{role}</SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <Button size="icon" className="h-8 w-8 bg-green-600 hover:bg-green-700" onClick={() => saveEdit(member.id)}>
+                                                                <Check className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={cancelEdit}>
+                                                                <X className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                        <div className="flex items-center space-x-2">
+                                                            <Checkbox
+                                                                id={`edit-primary-${member.id}`}
+                                                                checked={editIsPrimary}
+                                                                onCheckedChange={(checked) => setEditIsPrimary(checked as boolean)}
+                                                            />
+                                                            <Label htmlFor={`edit-primary-${member.id}`} className="cursor-pointer text-sm">
+                                                                Membro Principal
+                                                            </Label>
+                                                        </div>
+                                                        {editIsPrimary && (
+                                                            <p className="text-[10px] text-muted-foreground leading-tight">
+                                                                Responsável pelos arquivos no Google Drive.
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     <Badge variant="secondary" className="mt-2">

@@ -120,6 +120,17 @@ class AuthController extends Controller
                 ]);
             }
 
+            // Sync Family Membership based on email invitation
+            $memberRecord = \App\Models\FamilyMember::where('email', $user->email)->first();
+            if ($memberRecord) {
+                if (!$user->family_id) {
+                    $user->update(['family_id' => $memberRecord->family_id]);
+                }
+                if (!$memberRecord->user_id) {
+                    $memberRecord->update(['user_id' => $user->id]);
+                }
+            }
+
             Auth::login($user);
 
             return redirect()->intended(route('dashboard'));
