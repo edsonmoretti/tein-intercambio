@@ -11,6 +11,7 @@ class FamilyMember extends Model
     use HasFactory;
 
     protected $fillable = [
+        'family_id',
         'user_id',
         'name',
         'email',
@@ -21,5 +22,10 @@ class FamilyMember extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function family(): BelongsTo
+    {
+        return $this->belongsTo(Family::class);
     }
 }

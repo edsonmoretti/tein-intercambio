@@ -1,12 +1,13 @@
+import { useState } from 'react';
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Trash2, User, Star } from 'lucide-react';
+import { Plus, Trash2, User, Star, Pencil, X, Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const ROLES = [
@@ -20,6 +21,34 @@ export default function Index({ members }: { members: any[] }) {
         role: '',
         is_primary: false,
     });
+
+    // Edit State
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editRole, setEditRole] = useState('');
+
+    const deleteMember = (id: number) => {
+        if (confirm('Remover este membro da família? Se ele tiver conta, perderá o acesso a esta família.')) {
+            router.delete(`/family/${id}`);
+        }
+    };
+
+    const startEdit = (member: any) => {
+        setEditingId(member.id);
+        setEditRole(member.role);
+    };
+
+    const cancelEdit = () => {
+        setEditingId(null);
+        setEditRole('');
+    };
+
+    const saveEdit = (id: number) => {
+        router.put(`/family/${id}`, {
+            role: editRole,
+        }, {
+            onSuccess: () => cancelEdit()
+        });
+    };
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -117,11 +146,11 @@ export default function Index({ members }: { members: any[] }) {
                             <Card key={member.id} className="relative overflow-hidden group">
                                 <CardContent className="p-6">
                                     <div className="flex items-start justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                                        <div className="flex items-center gap-4 w-full">
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 shrink-0">
                                                 <User className="h-6 w-6" />
                                             </div>
-                                            <div>
+                                            <div className="flex-1">
                                                 <div className="flex items-center gap-2">
                                                     <h3 className="font-semibold text-slate-900 dark:text-white">{member.name}</h3>
                                                     {member.is_primary && (
@@ -129,19 +158,46 @@ export default function Index({ members }: { members: any[] }) {
                                                     )}
                                                 </div>
                                                 <p className="text-sm text-slate-500">{member.email}</p>
-                                                <Badge variant="secondary" className="mt-2">
-                                                    {member.role}
-                                                </Badge>
+
+                                                {editingId === member.id ? (
+                                                    <div className="mt-2 flex items-center gap-2">
+                                                        <Select value={editRole} onValueChange={setEditRole}>
+                                                            <SelectTrigger className="h-8 w-[140px]">
+                                                                <SelectValue placeholder="Função" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {ROLES.map((role) => (
+                                                                    <SelectItem key={role} value={role}>{role}</SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <Button size="icon" className="h-8 w-8 bg-green-600 hover:bg-green-700" onClick={() => saveEdit(member.id)}>
+                                                            <Check className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={cancelEdit}>
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <Badge variant="secondary" className="mt-2">
+                                                        {member.role}
+                                                    </Badge>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Delete Action - Only implicit via hover or corner logic */}
-                                    {/* Using absolute absolute positioning for cleaner card */}
-                                    <div className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100">
-                                        {/* Using Link as button for delete method="delete" is standard in Inertia provided we import Link */}
-                                        {/* Actually better to use a form or Link with as="button" */}
-                                    </div>
+                                    {/* Actions */}
+                                    {editingId !== member.id && (
+                                        <div className="absolute top-4 right-4 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                                            <Button size="icon" variant="ghost" className="h-8 w-8 text-slate-400 hover:text-blue-600" onClick={() => startEdit(member)}>
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                            <Button size="icon" variant="ghost" className="h-8 w-8 text-slate-400 hover:text-red-600" onClick={() => deleteMember(member.id)}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         ))}
