@@ -120,7 +120,7 @@ export default function Index({ members }: { members: any[] }) {
                                     {errors.role && <span className="text-xs text-red-500">{errors.role}</span>}
                                 </div>
 
-                                <div className="flex items-center space-x-2 pt-2">
+                                {/*<div className="flex items-center space-x-2 pt-2">
                                     <Checkbox
                                         id="is_primary"
                                         checked={data.is_primary}
@@ -131,7 +131,7 @@ export default function Index({ members }: { members: any[] }) {
                                 <p className="text-xs text-muted-foreground">
                                     Arquivos anexados por qualquer membro irão para o Google Drive deste usuário (Membro Principal).
                                 </p>
-
+*/}
                                 <Button type="submit" className="w-full" disabled={processing}>
                                     <Plus className="mr-2 h-4 w-4" /> Cadastrar
                                 </Button>
@@ -160,9 +160,9 @@ export default function Index({ members }: { members: any[] }) {
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2">
                                                     <h3 className="font-semibold text-slate-900 dark:text-white">{member.name}</h3>
-                                                    {member.is_primary && (
+                                                    {member.is_primary ? (
                                                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                                    )}
+                                                    ) : null}
                                                 </div>
                                                 <p className="text-sm text-slate-500">{member.email}</p>
 
@@ -186,7 +186,7 @@ export default function Index({ members }: { members: any[] }) {
                                                                 <X className="h-4 w-4" />
                                                             </Button>
                                                         </div>
-                                                        <div className="flex items-center space-x-2">
+                                                        {/*      <div className="flex items-center space-x-2">
                                                             <Checkbox
                                                                 id={`edit-primary-${member.id}`}
                                                                 checked={editIsPrimary}
@@ -195,12 +195,12 @@ export default function Index({ members }: { members: any[] }) {
                                                             <Label htmlFor={`edit-primary-${member.id}`} className="cursor-pointer text-sm">
                                                                 Membro Principal
                                                             </Label>
-                                                        </div>
-                                                        {editIsPrimary && (
+                                                        </div>*/}
+                                                        {editIsPrimary ? (
                                                             <p className="text-[10px] text-muted-foreground leading-tight">
                                                                 Responsável pelos arquivos no Google Drive.
                                                             </p>
-                                                        )}
+                                                        ) : null}
                                                     </div>
                                                 ) : (
                                                     <Badge variant="secondary" className="mt-2">
