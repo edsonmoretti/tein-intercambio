@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, ShoppingBasket, Check, PlusCircle, MinusCircle } from 'lucide-react';
+import { Plus, Trash2, ShoppingBasket, Check, PlusCircle, MinusCircle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -48,7 +48,7 @@ export default function Index({ items }: { items: any[] }) {
 
             <div className="mb-6">
                 <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Compras do Mês</h1>
-                <p className="text-muted-foreground">Gerencie sua lista de compras de supermercado/feira.</p>
+                <p className="text-muted-foreground dark:text-white">Gerencie sua lista de compras de supermercado/feira.</p>
             </div>
 
             <Tabs defaultValue="list" className="space-y-4">
@@ -64,17 +64,31 @@ export default function Index({ items }: { items: any[] }) {
                     </TabsTrigger>
                     <TabsTrigger value="catalog" className="gap-2">
                         <PlusCircle className="h-4 w-4" />
-                        Cadastrar / Gerenciar Itens
+                        Gerenciar Itens
                     </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="list" className="space-y-4">
                     <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle>Checklist de Mercado</CardTitle>
-                            <CardDescription>
-                                Marque os itens conforme for colocando no carrinho.
-                            </CardDescription>
+                        <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
+                            <div className="space-y-1">
+                                <CardTitle>Checklist de Mercado</CardTitle>
+                                <CardDescription>
+                                    Marque os itens conforme for colocando no carrinho.
+                                </CardDescription>
+                            </div>
+                            {listItems.length > 0 && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={!listItems.some(i => i.is_checked)}
+                                    onClick={() => {
+                                        if (confirm('Desmarcar todos os itens?')) router.post('/shopping/uncheck-all', {}, { preserveScroll: true });
+                                    }}
+                                >
+                                    Desmarcar Todos
+                                </Button>
+                            )}
                         </CardHeader>
                         <CardContent>
                             {listItems.length === 0 ? (
@@ -116,11 +130,12 @@ export default function Index({ items }: { items: any[] }) {
                                             </div>
                                             <Button
                                                 variant="ghost"
-                                                size="sm"
-                                                className="h-8 w-8 text-slate-400 hover:text-red-500"
+                                                size="icon"
+                                                className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-100/50"
                                                 onClick={(e) => { e.stopPropagation(); toggleList(item); }}
+                                                title="Remover da lista"
                                             >
-                                                <MinusCircle className="h-4 w-4" />
+                                                <X className="h-4 w-4" />
                                             </Button>
                                         </div>
                                     ))}

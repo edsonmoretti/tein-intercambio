@@ -7,12 +7,25 @@ use App\Models\ShoppingItem;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class ShoppingController extends Controller
 {
+
     public function index()
     {
-        $items = ShoppingItem::where('user_id', Auth::id())
+        $user = Auth::user();
+        $familyId = $user->family_id;
+
+        $items = ShoppingItem::query()
+            ->when($familyId, function ($query) use ($familyId) {
+                // Get all users in the family
+                $userIds = User::where('family_id', $familyId)->pluck('id');
+                return $query->whereIn('user_id', $userIds);
+            }, function ($query) use ($user) {
+                // Fallback to only own items
+                return $query->where('user_id', $user->id);
+            })
             ->orderBy('name')
             ->get();
 
@@ -30,34 +43,73 @@ class ShoppingController extends Controller
         ShoppingItem::create([
             'user_id' => Auth::id(),
             'name' => $validated['name'],
-            'is_on_list' => false, // Default to just catalog? Request said "register items", then "checklist for members". Let's assume catalog first? Or straight to list?
-            // "Terá uma aba para cadastrar itens de feira mensal ... terá uma aba para checklist"
-            // So: Catalog (is_on_list=false?) vs Checklist (is_on_list=true)
-            // Actually, if it's "Monthly Shopping", maybe items are always there but toggled?
-            // Let's assume newly added items are just "Registered" (is_on_list = false) until moved to list?
-            // Or maybe default to TRUE since they are adding it. Let's default to false (Catalog) as per "Tab to register" vs "Tab for checklist".
-            'is_on_list' => false,
+            'is_on_list' => true, // Improved UX: Add to list immediately
             'is_checked' => false,
         ]);
 
-        return back()->with('success', 'Item cadastrado com sucesso!');
+        return back()->with('success', 'Item adicionado à lista!');
     }
 
     public function update(Request $request, ShoppingItem $shoppingItem)
     {
-        if ($shoppingItem->user_id !== Auth::id())
+        $user = Auth::user();
+
+        // Ownership or Family check
+        $isOwner = $shoppingItem->user_id == $user->id;
+        $isFamily = $user->family_id && $shoppingItem->user?->family_id == $user->family_id;
+
+        \Illuminate\Support\Facades\Log::info('Shopping Update Check', [
+            'item_id' => $shoppingItem->id,
+            'user_id' => $user->id,
+            'item_user_id' => $shoppingItem->user_id,
+            'user_family' => $user->family_id,
+            'item_user_family' => $shoppingItem->user?->family_id, // This triggers a query if not loaded
+            'isOwner' => $isOwner,
+            'isFamily' => $isFamily
+        ]);
+
+        if (!$isOwner && !$isFamily) {
             abort(403);
+        }
 
         $shoppingItem->update($request->only(['is_on_list', 'is_checked']));
 
-        return back(); // Silent update usually
+        return back();
     }
 
     public function destroy(ShoppingItem $shoppingItem)
     {
-        if ($shoppingItem->user_id !== Auth::id())
+        $user = Auth::user();
+
+        $isOwner = $shoppingItem->user_id == $user->id;
+        $isFamily = $user->family_id && $shoppingItem->user?->family_id == $user->family_id;
+
+        if (!$isOwner && !$isFamily) {
+            \Illuminate\Support\Facades\Log::warning('Shopping Destroy Forbidden', [
+                'user' => $user->id,
+                'item_user' => $shoppingItem->user_id
+            ]);
             abort(403);
+        }
+
         $shoppingItem->delete();
         return back()->with('success', 'Item removido.');
+    }
+    public function uncheckAll()
+    {
+        $user = Auth::user();
+        $familyId = $user->family_id;
+
+        ShoppingItem::query()
+            ->when($familyId, function ($query) use ($familyId) {
+                $userIds = User::where('family_id', $familyId)->pluck('id');
+                return $query->whereIn('user_id', $userIds);
+            }, function ($query) use ($user) {
+                return $query->where('user_id', $user->id);
+            })
+            ->where('is_checked', true)
+            ->update(['is_checked' => false]);
+
+        return back()->with('success', 'Todos os itens foram desmarcados.');
     }
 }

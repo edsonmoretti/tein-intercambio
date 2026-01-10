@@ -16,6 +16,11 @@ class ShoppingItem extends Model
         'is_checked',
     ];
 
+    protected $casts = [
+        'is_on_list' => 'boolean',
+        'is_checked' => 'boolean',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

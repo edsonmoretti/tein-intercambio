@@ -32,7 +32,8 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('trips', TripController::class);
     Route::resource('family', App\Http\Controllers\Web\FamilyMemberController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['family' => 'familyMember']);
-    Route::resource('shopping', App\Http\Controllers\Web\ShoppingController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::resource('shopping', App\Http\Controllers\Web\ShoppingController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['shopping' => 'shoppingItem']);
+    Route::post('/shopping/uncheck-all', [App\Http\Controllers\Web\ShoppingController::class, 'uncheckAll'])->name('shopping.uncheck-all');
     Route::resource('checklist', App\Http\Controllers\Web\GeneralTaskController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['checklist' => 'generalTask']);
 
     // Sub-resources for Trips
