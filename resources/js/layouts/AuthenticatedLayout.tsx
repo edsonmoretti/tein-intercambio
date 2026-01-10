@@ -71,7 +71,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
                 <div className="flex h-16 items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800">
                     <Link href="/trips" className="flex items-center gap-2">
                         <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-                            Tein<span className="text-blue-600">Viagens</span>
+                            Lar<span className="text-blue-600">Digital</span>
                         </span>
                     </Link>
                     <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-500">
