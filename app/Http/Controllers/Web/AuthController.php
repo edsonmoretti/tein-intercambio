@@ -105,12 +105,14 @@ class AuthController extends Controller
                     'google_token' => $googleUser->token,
                     'google_refresh_token' => $googleUser->refreshToken,
                     'name' => $googleUser->name,
+                    'avatar' => $googleUser->getAvatar(),
                 ]);
             } else {
                 // Create user
                 $user = \App\Models\User::create([
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
+                    'avatar' => $googleUser->getAvatar(),
                     'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(24)),
                     'google_id' => $googleUser->id,
                     'google_token' => $googleUser->token,
