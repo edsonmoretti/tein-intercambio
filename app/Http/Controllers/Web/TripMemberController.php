@@ -21,12 +21,28 @@ class TripMemberController extends Controller
             'user_id' => 'nullable|exists:users,id'
         ]);
 
-        // If user_id is provided, check if already added
-        if (!empty($data['user_id'])) {
-            $exists = $trip->members()->where('user_id', $data['user_id'])->exists();
-            if ($exists) {
-                return back()->with('error', 'Este usuário já é um membro desta viagem.');
+        $nameToCheck = trim($data['name']);
+
+        // Check for duplicates by user_id OR name (case insensitive)
+        $query = $trip->members()->where(function ($q) use ($nameToCheck, $data) {
+            $q->where('name', 'ILIKE', $nameToCheck); // PostgreSQL case-insensitive
+            if (!empty($data['user_id'])) {
+                $q->orWhere('user_id', $data['user_id']);
             }
+        });
+
+        // Use 'LIKE' for MySQL/SQLite if not using Postgres, or strtolower comparison in PHP if DB unsure.
+        // Assuming MySQL/SQLite default collation is usually case-insensitive, but let's be safe.
+        // Since we don't know the DB driver for sure, let's do a reliable PHP check if the dataset is small (it is for trip members).
+
+        $exists = $trip->members->filter(function ($member) use ($nameToCheck, $data) {
+            $nameMatch = strcasecmp($member->name, $nameToCheck) === 0;
+            $idMatch = !empty($data['user_id']) && $member->user_id == $data['user_id'];
+            return $nameMatch || $idMatch;
+        })->isNotEmpty();
+
+        if ($exists) {
+            return back()->with('error', 'Este participante já foi adicionado à viagem.');
         }
 
         $trip->members()->create($data);

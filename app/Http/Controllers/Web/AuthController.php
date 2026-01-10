@@ -104,13 +104,14 @@ class AuthController extends Controller
                     'google_id' => $googleUser->id,
                     'google_token' => $googleUser->token,
                     'google_refresh_token' => $googleUser->refreshToken,
+                    'name' => $googleUser->name,
                 ]);
             } else {
                 // Create user
                 $user = \App\Models\User::create([
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
-                    'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(24)), // Random password
+                    'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(24)),
                     'google_id' => $googleUser->id,
                     'google_token' => $googleUser->token,
                     'google_refresh_token' => $googleUser->refreshToken,
@@ -120,14 +121,22 @@ class AuthController extends Controller
                 ]);
             }
 
-            // Sync Family Membership based on email invitation
+            // Sync Family Membership and Name
             $memberRecord = \App\Models\FamilyMember::where('email', $user->email)->first();
+
             if ($memberRecord) {
+                $memberRecord->update([
+                    'name' => $googleUser->name,
+                    'user_id' => $user->id
+                ]);
+
                 if (!$user->family_id) {
                     $user->update(['family_id' => $memberRecord->family_id]);
                 }
-                if (!$memberRecord->user_id) {
-                    $memberRecord->update(['user_id' => $user->id]);
+            } else {
+                $memberById = \App\Models\FamilyMember::where('user_id', $user->id)->first();
+                if ($memberById) {
+                    $memberById->update(['name' => $googleUser->name]);
                 }
             }
 

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, CheckCircle, Circle, User } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, getGenderColor } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
 export default function Index({ tasks, members }: { tasks: any[], members: any[] }) {
@@ -113,7 +113,7 @@ export default function Index({ tasks, members }: { tasks: any[], members: any[]
                                                         {task.description}
                                                     </p>
                                                     {task.member && (
-                                                        <Badge variant="outline" className="text-xs font-normal gap-1">
+                                                        <Badge variant="outline" className={`text-xs font-normal gap-1 ${getGenderColor(task.member.name, "text-slate-600 dark:text-slate-400")}`}>
                                                             <User className="h-3 w-3" />
                                                             {task.member.name}
                                                         </Badge>

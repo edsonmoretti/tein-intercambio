@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getGenderColor } from '@/lib/utils';
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout';
 import { Head, useForm, router } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -159,7 +160,7 @@ export default function Index({ members }: { members: any[] }) {
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2">
-                                                    <h3 className="font-semibold text-slate-900 dark:text-white">{member.name}</h3>
+                                                    <h3 className={`font-semibold ${getGenderColor(member.name)}`}>{member.name}</h3>
                                                     {member.is_primary ? (
                                                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                                                     ) : null}

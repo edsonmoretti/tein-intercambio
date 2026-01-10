@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout';
-import { cn } from '@/lib/utils';
+import { cn, getGenderBg, getGenderColor } from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     Calendar,
@@ -493,8 +493,8 @@ export default function Show({ trip, familyMembers = [], errors }: { trip: any; 
                                     <div className="flex -space-x-2 overflow-hidden">
                                         {(trip.members || []).length === 0 && <p className="text-sm text-slate-500">Nenhum participante adicionado.</p>}
                                         {(trip.members || []).map((member: any) => (
-                                            <div key={member.id} className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 ring-2 ring-white dark:bg-slate-800 dark:ring-slate-950" title={member.name}>
-                                                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                                            <div key={member.id} className={cn("inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 ring-2 ring-white dark:bg-slate-800 dark:ring-slate-950", getGenderBg(member.name))} title={member.name}>
+                                                <span className="text-xs font-medium">
                                                     {member.name.charAt(0)}
                                                 </span>
                                             </div>
@@ -559,8 +559,8 @@ export default function Show({ trip, familyMembers = [], errors }: { trip: any; 
                         {(trip.members || []).map((member: any) => (
                             <Card key={member.id} className="relative">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="flex items-center gap-2 text-base font-medium">
-                                        <Users className="h-4 w-4 text-slate-500" />
+                                    <CardTitle className={`flex items-center gap-2 text-base font-medium ${getGenderColor(member.name)}`}>
+                                        <Users className="h-4 w-4" />
                                         {member.name}
                                     </CardTitle>
                                     <Button
@@ -836,7 +836,7 @@ export default function Show({ trip, familyMembers = [], errors }: { trip: any; 
                                                 {CATEGORIES.find((c) => c.id === task.category)?.label || task.category}
                                             </span>
                                             {task.member && (
-                                                <span className="flex items-center gap-1 rounded bg-blue-50 px-1.5 py-0.5 text-[10px] text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+                                                <span className={cn("flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px]", getGenderBg(task.member.name, "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"))}>
                                                     <Users className="h-3 w-3" /> {task.member.name}
                                                 </span>
                                             )}
@@ -972,7 +972,7 @@ export default function Show({ trip, familyMembers = [], errors }: { trip: any; 
                                         <td className="px-4 py-3">
                                             {PURCHASE_CATEGORIES.find((c) => c.id === purchase.category)?.label || purchase.category}
                                         </td>
-                                        <td className="px-4 py-3 text-slate-500">{purchase.member ? purchase.member.name : '-'}</td>
+                                        <td className={cn("px-4 py-3 text-slate-500", getGenderColor(purchase.member?.name, ""))}>{purchase.member ? purchase.member.name : '-'}</td>
                                         <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
                                             ${Number(purchase.estimated_cost).toFixed(2)}
                                         </td>
@@ -1122,7 +1122,7 @@ export default function Show({ trip, familyMembers = [], errors }: { trip: any; 
                                         </div>
                                     </div>
                                     {doc.member && (
-                                        <CardDescription className="flex items-center gap-1 text-xs">
+                                        <CardDescription className={cn("flex items-center gap-1 text-xs", getGenderColor(doc.member.name, ""))}>
                                             <Users className="h-3 w-3" /> {doc.member.name}
                                         </CardDescription>
                                     )}
