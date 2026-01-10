@@ -54,7 +54,9 @@ class TripController extends Controller
 
         $trip->load('documents.member', 'tasks.member', 'budgets', 'events', 'purchases.member', 'housings', 'members');
 
-        $familyMembers = \App\Models\FamilyMember::where('user_id', Auth::id())->orderBy('name')->get();
+        $familyMembers = Auth::user()->family_id
+            ? \App\Models\FamilyMember::where('family_id', Auth::user()->family_id)->orderBy('name')->get()
+            : [];
 
         return Inertia::render('Trips/Show', [
             'trip' => $trip,

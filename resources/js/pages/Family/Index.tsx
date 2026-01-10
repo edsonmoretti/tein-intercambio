@@ -11,7 +11,7 @@ import { Plus, Trash2, User, Star, Pencil, X, Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const ROLES = [
-    'Pai', 'Mãe', 'Filho', 'Filha', 'Avô', 'Avó', 'Tio', 'Tia', 'Primo', 'Prima', 'Amigo', 'Outro'
+    'Marido/Pai', 'Esposa/Mãe', 'Filho(a)', 'Avô(ó)', 'Tio(a)', 'Primo(a)', 'Amigo(a)', 'Outro(a)'
 ];
 
 export default function Index({ members }: { members: any[] }) {
@@ -166,8 +166,8 @@ export default function Index({ members }: { members: any[] }) {
                                                                 <SelectValue placeholder="Função" />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                {ROLES.map((role) => (
-                                                                    <SelectItem key={role} value={role}>{role}</SelectItem>
+                                                                {ROLES.map((role, index) => (
+                                                                    <SelectItem key={`edit-${index}-${role}`} value={role}>{role}</SelectItem>
                                                                 ))}
                                                             </SelectContent>
                                                         </Select>

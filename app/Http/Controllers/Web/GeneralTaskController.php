@@ -19,7 +19,9 @@ class GeneralTaskController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        $members = FamilyMember::where('user_id', Auth::id())->orderBy('name')->get();
+        $members = Auth::user()->family_id
+            ? FamilyMember::where('family_id', Auth::user()->family_id)->orderBy('name')->get()
+            : [];
 
         return Inertia::render('Checklist/Index', [
             'tasks' => $tasks,
