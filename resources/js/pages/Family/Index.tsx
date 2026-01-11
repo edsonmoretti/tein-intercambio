@@ -155,8 +155,12 @@ export default function Index({ members }: { members: any[] }) {
                                 <CardContent className="p-6">
                                     <div className="flex items-start justify-between">
                                         <div className="flex items-center gap-4 w-full">
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 shrink-0">
-                                                <User className="h-6 w-6" />
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 shrink-0 overflow-hidden">
+                                                {member.user?.avatar ? (
+                                                    <img src={member.user.avatar} alt={member.name} className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <User className="h-6 w-6" />
+                                                )}
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2">

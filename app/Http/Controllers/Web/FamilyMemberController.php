@@ -50,6 +50,7 @@ class FamilyMemberController extends Controller
         }
 
         $members = FamilyMember::where('family_id', $user->family_id)
+            ->with('user:id,avatar') // optimized load
             ->orderByDesc('is_primary')
             ->orderBy('name')
             ->get();

@@ -113,8 +113,12 @@ export default function Index({ tasks, members }: { tasks: any[], members: any[]
                                                         {task.description}
                                                     </p>
                                                     {task.member && (
-                                                        <Badge variant="outline" className={`text-xs font-normal gap-1 ${getGenderColor(task.member.name, "text-slate-600 dark:text-slate-400")}`}>
-                                                            <User className="h-3 w-3" />
+                                                        <Badge variant="outline" className={`text-xs font-normal gap-1 pr-1.5 ${getGenderColor(task.member.name, "text-slate-600 dark:text-slate-400")}`}>
+                                                            {task.member.user?.avatar ? (
+                                                                <img src={task.member.user.avatar} alt={task.member.name} className="h-4 w-4 rounded-full object-cover -ml-0.5" />
+                                                            ) : (
+                                                                <User className="h-3 w-3" />
+                                                            )}
                                                             {task.member.name}
                                                         </Badge>
                                                     )}

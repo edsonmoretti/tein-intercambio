@@ -493,10 +493,14 @@ export default function Show({ trip, familyMembers = [], errors }: { trip: any; 
                                     <div className="flex -space-x-2 overflow-hidden">
                                         {(trip.members || []).length === 0 && <p className="text-sm text-slate-500">Nenhum participante adicionado.</p>}
                                         {(trip.members || []).map((member: any) => (
-                                            <div key={member.id} className={cn("inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 ring-2 ring-white dark:bg-slate-800 dark:ring-slate-950", getGenderBg(member.name))} title={member.name}>
-                                                <span className="text-xs font-medium">
-                                                    {member.name.charAt(0)}
-                                                </span>
+                                            <div key={member.id} className={cn("inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 ring-2 ring-white overflow-hidden dark:bg-slate-800 dark:ring-slate-950", getGenderBg(member.name))} title={member.name}>
+                                                {member.user?.avatar ? (
+                                                    <img src={member.user.avatar} alt={member.name} className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <span className="text-xs font-medium">
+                                                        {member.name.charAt(0)}
+                                                    </span>
+                                                )}
                                             </div>
                                         ))}
                                         {(trip.members || []).length > 0 && (

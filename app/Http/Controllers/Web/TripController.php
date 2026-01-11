@@ -61,10 +61,18 @@ class TripController extends Controller
             abort(403);
         }
 
-        $trip->load('documents.member', 'tasks.member', 'budgets', 'events', 'purchases.member', 'housings', 'members');
+        $trip->load([
+            'documents.member.user:id,avatar',
+            'tasks.member.user:id,avatar',
+            'budgets',
+            'events',
+            'purchases.member.user:id,avatar',
+            'housings',
+            'members.user:id,avatar'
+        ]);
 
         $familyMembers = $user->family_id
-            ? \App\Models\FamilyMember::where('family_id', $user->family_id)->orderBy('name')->get()
+            ? \App\Models\FamilyMember::where('family_id', $user->family_id)->with('user:id,avatar')->orderBy('name')->get()
             : [];
 
         return Inertia::render('Trips/Show', [

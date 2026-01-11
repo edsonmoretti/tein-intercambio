@@ -14,7 +14,7 @@ class GeneralTaskController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $query = GeneralTask::with(['member']);
+        $query = GeneralTask::with(['member.user:id,avatar']);
 
         if ($user->family_id) {
             // Get all tasks created by any user in this family
@@ -30,7 +30,7 @@ class GeneralTaskController extends Controller
             ->get();
 
         $members = $user->family_id
-            ? FamilyMember::where('family_id', $user->family_id)->orderBy('name')->get()
+            ? FamilyMember::where('family_id', $user->family_id)->with('user:id,avatar')->orderBy('name')->get()
             : [];
 
         return Inertia::render('Checklist/Index', [

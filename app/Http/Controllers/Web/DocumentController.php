@@ -7,7 +7,9 @@ use App\Models\Trip;
 use App\Models\Document;
 use App\Models\User;
 use App\Models\FamilyMember;
+use App\Services\GoogleDriveService;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 
 class DocumentController extends Controller
@@ -61,7 +63,7 @@ class DocumentController extends Controller
         $driveOwner = $this->getFamilyOwner(Auth::user());
 
         if ($driveOwner->google_token) {
-            $driveService = new \App\Services\GoogleDriveService($driveOwner->google_token);
+            $driveService = new GoogleDriveService($driveOwner->google_token);
         } else {
             $msg = $driveOwner->id === Auth::id()
                 ? 'Você precisa conectar sua conta do Google para enviar documentos.'
@@ -71,7 +73,7 @@ class DocumentController extends Controller
         }
 
         $membersToAssign = [];
-        // If 'all', we treat as General Document (No specific member logic), 
+        // If 'all', we treat as General Document (No specific member logic),
         // effectively CASE 1. So we leave membersToAssign empty.
         // We only populate membersToAssign if a SPECIFIC member ID is provided.
         if (!empty($data['trip_member_id']) && $data['trip_member_id'] !== 'all') {
@@ -159,7 +161,7 @@ class DocumentController extends Controller
             $driveOwner = $this->getFamilyOwner(Auth::user());
 
             if ($driveOwner->google_token) {
-                $driveService = new \App\Services\GoogleDriveService($driveOwner->google_token);
+                $driveService = new GoogleDriveService($driveOwner->google_token);
 
                 try {
                     $tripFolderId = $this->getTripFolderId($driveService, $document->trip);
@@ -192,7 +194,7 @@ class DocumentController extends Controller
     }
 
     public function destroy(Document $document)
-/    {
+    {
         // Family authorization check
         $user = Auth::user();
         $isFamilyAuth = ($user->family_id && $document->trip->user->family_id === $user->family_id);
@@ -208,7 +210,7 @@ class DocumentController extends Controller
 
             if ($driveOwner->google_token) {
                 try {
-                    $driveService = new \App\Services\GoogleDriveService($driveOwner->google_token);
+                    $driveService = new GoogleDriveService($driveOwner->google_token);
                     // Extract ID from URL
                     if (preg_match('/\/d\/([a-zA-Z0-9_-]+)/', $document->file_path, $matches)) {
                         $fileId = $matches[1];
@@ -231,9 +233,14 @@ class DocumentController extends Controller
      * Helper to get or create the standard trip folder structure.
      * Structure: {APP_NAME} > Documentos > Viagens > {Place} - {City}, {Country} ({ID})
      */
-    private function getTripFolderId(\App\Services\GoogleDriveService $driveService, Trip $trip)
+    private function getTripFolderId(GoogleDriveService $driveService, Trip $trip)
     {
-        $rootId = $driveService->ensureFolder(config('app.name'));
+        // se config is debug add root id - DEBUG
+        $rootFolder = config('app.name');
+        if (config('app.debug')) {
+            $rootFolder .= ' - DEBUG';
+        }
+        $rootId = $driveService->ensureFolder($rootFolder);
         $docsId = $driveService->ensureFolder('Documentos', $rootId);
         $viagensId = $driveService->ensureFolder('Viagens', $docsId);
 
@@ -247,7 +254,7 @@ class DocumentController extends Controller
      * Helper to upload a file with the standard naming convention.
      * Naming: {Type} - {OriginalName}
      */
-    private function uploadDocumentFile(\App\Services\GoogleDriveService $driveService, \Illuminate\Http\UploadedFile $file, $folderId, $docType)
+    private function uploadDocumentFile(GoogleDriveService $driveService, UploadedFile $file, $folderId, $docType)
     {
         $fileName = $docType . ' - ' . $file->getClientOriginalName();
         $uploadedFile = $driveService->uploadFile($file, $folderId, $fileName);

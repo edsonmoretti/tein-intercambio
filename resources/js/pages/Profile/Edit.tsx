@@ -12,6 +12,7 @@ interface User {
     email: string;
     phone: string;
     birth_date: string;
+    avatar?: string;
 }
 
 export default function Edit({ status }: { status?: string }) {
@@ -70,6 +71,11 @@ export default function Edit({ status }: { status?: string }) {
                         <CardDescription>
                             Atualize as informações do seu perfil e endereço de e-mail.
                         </CardDescription>
+                        {user.avatar && (
+                            <div className="mt-4 flex justify-center">
+                                <img src={user.avatar} alt={user.name} className="h-24 w-24 rounded-full object-cover ring-2 ring-white dark:ring-slate-800" />
+                            </div>
+                        )}
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={submit} className="space-y-6">
